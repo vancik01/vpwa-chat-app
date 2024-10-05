@@ -7,14 +7,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-      <!-- drawer content -->
-      <q-scroll-area class="fit">
-        <div>Drawer</div>
-        <!-- Exampel use of store -->
-        <div>{{userStore.user.display_name}}</div>
-      </q-scroll-area>
-    </q-drawer>
+    <DrawerLayout :leftDrawerOpen="leftDrawerOpen" @update:leftDrawerOpen="leftDrawerOpen = $event" />
 
     <q-page-container>
       <q-page padding>
@@ -29,10 +22,15 @@
 </template>
 
 <script>
+import DrawerLayout from 'src/components/DrawerLayout.vue';
 import { useUserStore } from 'src/stores/userStore';
 import { ref } from 'vue'
 
 export default {
+  components: {
+    DrawerLayout
+  },
+  
   setup () {
     const leftDrawerOpen = ref(false)
     const userStore = useUserStore();
