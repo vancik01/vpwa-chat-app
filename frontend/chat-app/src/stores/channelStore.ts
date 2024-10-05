@@ -52,7 +52,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   },
   actions: {
     postMessage(message) {
-        console.log(message)
+        console.log(`message ${message} sent to channel ${this.current_channel?.name}`)
     },
     loadMessages() {
       // Handle pagination logic in later phase
