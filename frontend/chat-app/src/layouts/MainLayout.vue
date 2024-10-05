@@ -30,7 +30,8 @@ import { ref } from 'vue'
 
 export default {
   components: {
-    DrawerLayout
+    DrawerLayout,
+    CommandLine
   },
   
   setup () {
@@ -45,9 +46,6 @@ export default {
       }
     }
   },
-  components:{
-    CommandLine
-  }
 }
 </script>
 
