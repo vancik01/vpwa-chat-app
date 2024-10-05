@@ -12,8 +12,8 @@
     <q-page-container>
       <q-page padding>
         <router-view />
-        <q-footer class="text-black bg-white message-bar">
-          <div>Command / message input</div>
+        <q-footer class="text-black bg-white">
+          <command-line />
         </q-footer>
       </q-page>
     </q-page-container>
@@ -22,9 +22,11 @@
 </template>
 
 <script>
+import CommandLine from 'src/components/CommandLine.vue';
 import DrawerLayout from 'src/components/DrawerLayout.vue';
 import { useUserStore } from 'src/stores/userStore';
 import { ref } from 'vue'
+// eslint-disable-next-line no-use-before-define
 
 export default {
   components: {
@@ -42,14 +44,11 @@ export default {
         leftDrawerOpen.value = !leftDrawerOpen.value
       }
     }
+  },
+  components:{
+    CommandLine
   }
 }
 </script>
 
-<style>
-.message-bar {
-  padding: 16px;
-  min-height: 140px;
-  border-top: 1px solid #DDDDDD;
-}
-</style>
+
