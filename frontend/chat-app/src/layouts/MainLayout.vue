@@ -20,7 +20,7 @@
       <q-page padding>
         <router-view />
         <q-footer class="text-black bg-white">
-          <CommandLine />
+          <command-line />
         </q-footer>
       </q-page>
     </q-page-container>
