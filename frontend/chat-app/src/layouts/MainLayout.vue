@@ -7,13 +7,15 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered class="q-drawer">
       <!-- drawer content -->
-      <q-scroll-area class="fit">
-        <div>Drawer</div>
+      <!-- <q-scroll-area class="fit">
+        
+      </q-scroll-area> -->
+      <div>Drawer</div>
         <!-- Exampel use of store -->
-        <div>{{userStore.user.display_name}}</div>
-      </q-scroll-area>
+      <div>{{userStore.user.display_name}}</div>
+      <user-status-bar></user-status-bar>
     </q-drawer>
 
     <q-page-container>
@@ -30,27 +32,36 @@
 
 <script>
 import CommandLine from 'src/components/CommandLine.vue';
+import UserStatusBar from 'src/components/UserStatusBar.vue';
 import { useUserStore } from 'src/stores/userStore';
 import { ref } from 'vue'
 // eslint-disable-next-line no-use-before-define
 
 export default {
-  setup () {
-    const leftDrawerOpen = ref(false)
-    const userStore = useUserStore();
+	setup () {
+		const leftDrawerOpen = ref(false)
+		const userStore = useUserStore();
 
-    return {
-      userStore,
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
-  },
-  components:{
-    CommandLine
-  }
+		return {
+			userStore,
+			leftDrawerOpen,
+			toggleLeftDrawer () {
+				leftDrawerOpen.value = !leftDrawerOpen.value
+			}
+		}
+	},
+	components:{
+		CommandLine,
+		UserStatusBar,
+	}
 }
 </script>
+
+<style>
+ .q-drawer{
+  display: flex;
+  flex-direction: column;
+ }
+</style>
 
 
