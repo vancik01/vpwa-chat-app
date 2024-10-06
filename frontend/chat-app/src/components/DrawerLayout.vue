@@ -50,7 +50,11 @@ export default {
         height: 100%;
     }
     .logo-placeholder {
-        padding: 1rem;
+        min-height: 50px;
+        display: flex;
+        justify-content: start;
+        align-items: center; 
+        padding: 12px 16px;
     }
     .channels-section {
         flex: 1;
