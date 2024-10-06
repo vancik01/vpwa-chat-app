@@ -49,4 +49,11 @@ export default {
 }
 </script>
 
+<style>
+ .q-drawer{
+  display: flex;
+  flex-direction: column;
+ }
+</style>
+
 

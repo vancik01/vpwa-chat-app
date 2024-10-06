@@ -2,6 +2,7 @@ export type User = {
   nickname: string,
   display_name: string,
   token: string,
+  status: UserStatus
 }
 
 export type UserCreateAccountProps = {
