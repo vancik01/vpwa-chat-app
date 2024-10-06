@@ -9,6 +9,7 @@
             <!-- channels section -->
             <div class="channels-section">
                 <h6 class="text-h6 text-weight-bold">Channels</h6>
+                <ChannelList/>
             </div>
 
             <!-- status bar -->
@@ -22,6 +23,7 @@
 <script>
 import { useUserStore } from 'src/stores/userStore';
 import UserStatusBar from './UserStatusBar.vue';
+import ChannelList from './ChannelList.vue';
 
 export default {
     props: ['leftDrawerOpen'],
@@ -38,7 +40,8 @@ export default {
         }
     },
     components:{
-        UserStatusBar
+        UserStatusBar,
+        ChannelList
     }
 }
 </script>
@@ -59,11 +62,21 @@ export default {
     .channels-section {
         flex: 1;
         padding: 1rem;
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-bottom: 0;
         border-top: 1px solid #DDDDDD;
+        border-bottom: 1px solid #DDDDDD;
+        overflow-y: auto;
     }
     .channels-section h6 {
-        margin-top: 0.6rem;
-        padding: 0; 
+        position: sticky;
+        top: 0; 
+        background: white; 
+        padding: 1.5rem 0; 
+        margin: 0; 
+        z-index: 1; 
     }
     .status-bar {
         height: fit-content;

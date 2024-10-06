@@ -13,7 +13,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   		state: (): ChannelState => ({
   			current_channel: {
   				name:'channel_name_123',
-  				id: '',
+  				id: '1',
   				has_new_messages:0,
   				type: 'private',
   				is_someone_typing:false,
