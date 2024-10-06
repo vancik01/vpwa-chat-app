@@ -13,7 +13,7 @@
 
             <!-- status bar -->
             <div class="status-bar">
-                <span>{{ userStore.user.display_name }}</span>
+                <UserStatusBar />
             </div>
         </div>
     </q-drawer>
@@ -21,6 +21,7 @@
   
 <script>
 import { useUserStore } from 'src/stores/userStore';
+import UserStatusBar from './UserStatusBar.vue';
 
 export default {
     props: ['leftDrawerOpen'],
@@ -35,6 +36,9 @@ export default {
         updateDrawer(value) {
             this.$emit('update:leftDrawerOpen', value);
         }
+    },
+    components:{
+        UserStatusBar
     }
 }
 </script>
@@ -52,7 +56,6 @@ export default {
         flex: 1;
         padding: 1rem;
         border-top: 1px solid #DDDDDD;
-        border-bottom: 1px solid #DDDDDD;
     }
     .channels-section h6 {
         margin-top: 0.6rem;
