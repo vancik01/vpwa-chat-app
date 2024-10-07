@@ -67,7 +67,6 @@ export default {
         margin-bottom: 0;
         padding-bottom: 0;
         border-top: 1px solid #DDDDDD;
-        border-bottom: 1px solid #DDDDDD;
         overflow-y: auto;
     }
     .channels-section h6 {

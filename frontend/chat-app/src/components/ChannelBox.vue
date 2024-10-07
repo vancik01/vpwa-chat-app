@@ -3,10 +3,7 @@
     class="channel-box"
     :class="{
       'active': isActive,
-      'hover': isHovered,
       'new-message': channel.has_new_messages > 0 }"
-    @mouseover="isHovered = true"
-    @mouseleave="isHovered = false"
     @click="selectChannel">
     
     <q-icon v-if="channel.type === 'private'" name="lock" />
@@ -28,7 +25,6 @@ export default {
   },
   data() {
     return {
-      isHovered: false,
       userStore: useUserStore(),
       channelStore: useChannelStore()
     };
@@ -53,12 +49,16 @@ export default {
   overflow: hidden;
 }
 
+.channel-box:not(.active){
+  transition: background-color 0.3s ease;
+}
+
 .channel-box.active {
   background-color: #000000BD;
   color: white;
 }
 
-.channel-box.hover {
+.channel-box:not(.active):hover {
   background-color: #00000014;
   color: black;
 }
@@ -66,7 +66,7 @@ export default {
 .new-messages {
   background-color: #2196F3;
   color: white;
-  border-radius: 40%;
+  border-radius: 6px;
   padding: 0.2rem 0.6rem; 
   margin-left: auto;
   min-width: 1.5rem; 
