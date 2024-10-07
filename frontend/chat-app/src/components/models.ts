@@ -23,7 +23,6 @@ export type ChannelMember = {
 
 export type Channel = {
   id:string,
-  name: string,
   type: 'private' | 'public',
   has_new_messages: number,
   channel_members: ChannelMember[],
@@ -36,4 +35,5 @@ export type Message = {
   type: 'system' | 'message',
   message_content: string,
   from: ChannelMember,
+  sent_at: string
 }

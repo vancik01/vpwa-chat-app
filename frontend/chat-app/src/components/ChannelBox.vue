@@ -4,11 +4,11 @@
     :class="{
       'active': isActive,
       'new-message': channel.has_new_messages > 0 }"
-    @click="selectChannel">
+    @click="selectChannel(channel.id)">
     
     <q-icon v-if="channel.type === 'private'" name="lock" />
     <q-icon v-else name="tag" />
-    <span class="channel-name q-px-xs">{{ channel.name }}</span>
+    <span class="channel-name q-px-xs">{{ channel.id }}</span>
     <div v-if="channel.has_new_messages > 0" class="new-messages">{{ channel.has_new_messages }}</div>
   </div>
 </template>
@@ -30,8 +30,8 @@ export default {
     };
   },
   methods: {
-    selectChannel() {
-      this.channelStore.current_channel = this.channel;
+    selectChannel(id) {
+      this.channelStore.setCurrentChannel(id)
     }
   }
 };
@@ -67,14 +67,14 @@ export default {
   background-color: #2196F3;
   color: white;
   border-radius: 6px;
-  padding: 0.2rem 0.6rem; 
+  padding: 0.2rem 0.4rem; 
   margin-left: auto;
   min-width: 1.5rem; 
-  height: 1.5rem; 
   display: flex; 
   align-items: center; 
   justify-content: center;
-  font-size: 0.75rem; 
+  font-size: 12px; 
+  line-height: 12px;
 }
 
 

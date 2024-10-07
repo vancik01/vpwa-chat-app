@@ -10,7 +10,7 @@
     <DrawerLayout :leftDrawerOpen="leftDrawerOpen" @update:leftDrawerOpen="leftDrawerOpen = $event" />
 
     <q-page-container>
-      <q-page padding>
+      <q-page>
         <router-view />
         <q-footer class="text-black bg-white">
           <command-line />

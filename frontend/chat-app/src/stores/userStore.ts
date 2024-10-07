@@ -27,45 +27,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   				status: 'online',
   			},
   			channels:[
-  				{
-  					name:'channel_name_123',
-  					id: '1',
-  					has_new_messages: 0,
-  					type: 'private',
-  					channel_members: [],
-  					is_someone_typing: false,
-  					user_typing: null
-  				},
           {
-            name:'channel_name_123_456',
-            id: '2',
-            has_new_messages: 0,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null
-          },
-          {
-            name:'channel_name_123_456_789',
-            id: '3',
-            has_new_messages: 4,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null
-          },
-          {
-            name:'channel_name_123',
-            id: '4',
-            has_new_messages: 0,
-            type: 'private',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null
-          },
-          {
-            name:'channel_name_123_456_789',
-            id: '5',
+            id:'channel_name_123_456_789',
             has_new_messages: 128,
             type: 'public',
             channel_members: [],
@@ -73,8 +36,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'very_long_channel_name_without_new_messages',
-            id: '6',
+            id:'very_long_channel_name_without_new_messages',
             has_new_messages: 0,
             type: 'public',
             channel_members: [],
@@ -82,8 +44,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'very_long_channel_name_with_new_messages',
-            id: '7',
+            id:'very_long_channel_name_with_new_messages',
             has_new_messages: 23,
             type: 'private',
             channel_members: [],
@@ -91,8 +52,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'channel',
-            id: '8',
+            id:'channel_1',
             has_new_messages: 0,
             type: 'private',
             channel_members: [],
@@ -100,8 +60,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'channel',
-            id: '9',
+            id:'channel_2',
             has_new_messages: 0,
             type: 'private',
             channel_members: [],
@@ -109,8 +68,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'channel',
-            id: '10',
+            id: 'channel_3',
             has_new_messages: 0,
             type: 'public',
             channel_members: [],
@@ -118,8 +76,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null
           },
           {
-            name:'channel',
-            id: '11',
+            id: 'channel_4',
             has_new_messages: 0,
             type: 'public',
             channel_members: [],
