@@ -62,6 +62,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				const inviteRegex = /^\/invite\s+(\w+)$/;
 				const revokeRegex = /^\/revoke\s+(\w+)$/;
 				const listRegex = /^\/list$/;
+				const leaveRegex = /^\/leave$/;
 				const userStore = useUserStore()
 			  
 				// Check if the message starts with a command
@@ -80,6 +81,9 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  const nickName = commandMatch[1];
 				  userStore.revokeInvitation(this.current_channel?.id as string, nickName)
 			  
+				} else if ((commandMatch = messageContent.match(leaveRegex))) {
+					userStore.leaveChannel(this.current_channel?.id as string)
+				
 				} else if ((commandMatch = messageContent.match(listRegex))) {
 					
 					const messageObject: Message = {

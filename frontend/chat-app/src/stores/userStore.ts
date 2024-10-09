@@ -117,7 +117,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
   				console.log(channelId, userId)
   			},
   			leaveChannel(channelId) {
-  				console.log(channelId)
+          const channelIndex = this.channels.findIndex(channel => channel.id === channelId);
+          if (channelIndex !== -1) {
+            this.channels.splice(channelIndex, 1);
+          }
+          this.router.push('/')
+
+          console.log('leave', channelId)
   			},
   			joinChannel(channelId) {
   				console.log(channelId)
