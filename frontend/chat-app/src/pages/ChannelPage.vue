@@ -7,11 +7,19 @@
         <span>{{ channelStore.current_channel?.id }}</span>
         </div>
         <div ref="messageContainer" class="channel-messages" v-if="channelStore.messages && !channelStore.is_loading">
-          <ChannelMessage
-            v-for="item, i in channelStore.messages" 
-            :message="item" 
-            v-bind:key="`${item.sent_at}-${i}`"
-        />
+          <template v-for="(item, i) in channelStore.messages" :key="`${item.sent_at}-${i}`">
+            <!-- Conditionally render based on the message type -->
+            <ChannelMessage
+              v-if="item.type === 'message'"
+              :message="item"
+            />
+            
+            <!-- System message rendering -->
+            <div v-else>
+              {{ channelStore.current_channel?.channel_members }}
+            </div>
+          </template>
+        
         </div>
     </section>
   

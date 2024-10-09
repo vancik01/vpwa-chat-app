@@ -39,7 +39,7 @@ export default {
         postMessage(){
             if(this.isMessage){
                 chatStore.postMessage(this.editorContent)
-                    this.editorContent = ''
+                this.editorContent = ''
             }
         },
         handleKeyDown(key){

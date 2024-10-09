@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { Channel, Message } from 'src/components/models'
+import { Channel, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
 
 interface ChannelState {
@@ -9,7 +9,7 @@ interface ChannelState {
 }
 
 export const useChannelStore = defineStore<'channelStore', ChannelState, NonNullable<unknown>, {
-  postMessage: (messageContent:string) => void,
+  postMessage: (messageContent:string, messageType:MessageType) => void,
   loadMessages: () => void,
   setCurrentChannel: (channelId:string) => void,
   	}>('channelStore', {
@@ -56,24 +56,57 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   			// Add getters here if needed with types
   		},
   		actions: {
-  			postMessage(messageContent) {
+			postMessage(messageContent: string) {
+				// Regular expressions for commands
+				const joinRegex = /^\/join\s+(\w+)?$/;
+				const inviteRegex = /^\/invite\s+(\w+)$/;
+				const revokeRegex = /^\/revoke\s+(\w+)$/;
+				const listRegex = /^\/list$/;
 				const userStore = useUserStore()
-  				console.log(`message ${messageContent} sent to channel ${this.current_channel?.id}`)
-				if(userStore.user){
-					const messageObject:Message = {
-						from: {
-							display_name: userStore.user.display_name,
-							nickname: userStore.user.nickname,
-							status:'online'	
-						},
-						message_content: messageContent,
+			  
+				// Check if the message starts with a command
+				let commandMatch = null;
+				if ((commandMatch = messageContent.match(joinRegex))) {
+				  // Call the dummy function to handle the /join command
+				  const channelName = commandMatch[1];
+				  userStore.joinChannel(channelName)
+			  
+				} else if ((commandMatch = messageContent.match(inviteRegex))) {
+				  const nickName = commandMatch[1];
+				  console.log({nickName});
+				  userStore.inviteUserToChannel(this.current_channel?.id as string, nickName)
+			  
+				} else if ((commandMatch = messageContent.match(revokeRegex))) {
+				  const nickName = commandMatch[1];
+				  userStore.revokeInvitation(this.current_channel?.id as string, nickName)
+			  
+				} else if ((commandMatch = messageContent.match(listRegex))) {
+					
+					const messageObject: Message = {
+						command_type: 'list',
 						sent_at: new Date().toLocaleTimeString(),
-						type: 'message'
-					}
+						type: 'system',
+					};
+					this.messages.push(messageObject);
 
-					this.messages.push(messageObject)
+				} else {
+				  const userStore = useUserStore();
+				  if (userStore.user) {
+					const messageObject: Message = {
+					  from: {
+						display_name: userStore.user.display_name,
+						nickname: userStore.user.nickname,
+						status: 'online',
+					  },
+					  message_content: messageContent,
+					  sent_at: new Date().toLocaleTimeString(),
+					  type: 'message',
+					};
+			  
+					this.messages.push(messageObject);
+				  }
 				}
-  			},
+			  },
   			loadMessages() {
   				// Handle pagination logic in later phase
   				console.log('messages')

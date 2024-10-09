@@ -31,9 +31,20 @@ export type Channel = {
   // ...
 }
 
-export type Message = {
-  type: 'system' | 'message',
-  message_content: string,
-  from: ChannelMember,
-  sent_at: string
-}
+export type MessageType = 'message' | 'system';
+export type SystemMessageType = 'list';
+
+export type TextMessage = {
+    type: 'message';
+    message_content: string;
+    from: ChannelMember;
+    sent_at: string;
+};
+
+export type SystemMessage = {
+    type: 'system';
+    command_type:SystemMessageType;
+    sent_at: string;
+};
+
+export type Message = TextMessage | SystemMessage;

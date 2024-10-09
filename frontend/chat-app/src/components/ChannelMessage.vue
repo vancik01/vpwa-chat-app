@@ -1,12 +1,15 @@
 <template>
-    <div class="message">
+    <div class="message" v-if="props.message.type === 'message'">
         <div class="message-wraper">
             <div class="message-user">
-                <span>🚀</span>
+                <span>💬</span>
+                <div class="message-user-status">
+                    <StatusDot status="online" />
+                </div>
             </div>
             <div class="message-content">
                 <div class="message-meta">
-                    <div class="message-user-name">{{message.from.display_name}}</div>
+                    <div class="message-user-name">{{message.type == "message" ? message.from.display_name : "Bot"}}</div>
                     <div class="message-time">{{message.sent_at}}</div>
                 </div>
                 <p v-html="props.message.message_content" />
@@ -17,6 +20,7 @@
 
 <script lang="ts" setup>
 import { Message } from './models';
+import StatusDot from './StatusDot.vue';
 
 const props = defineProps<{
     message: Message
@@ -76,6 +80,16 @@ const props = defineProps<{
     display: flex;
     gap: 24px;
     align-items: center;
+}
+
+.message-user{
+    position:relative;
+}
+
+.message-user-status{
+    position: absolute;
+    right: -2px;
+    bottom: -0px;
 }
 
 </style>

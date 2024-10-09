@@ -14,8 +14,9 @@ export const useUserStore = defineStore<'userStore', UserState, {
   createAccount: (createAccountProps:UserCreateAccountProps) => void
   setStatus: (status: UserStatus) => void,
   leaveChannel: (channelId: string) => void,
-  acceptInvitation: (channelId: string) => void,
-  revokeInvitation: (channelId: string) => void,
+  joinChannel: (channelId: string) => void,
+  inviteUserToChannel: (channelId: string, userId:string) => void,
+  revokeInvitation: (channelId: string, nickname:string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
 }>('userStore', {
@@ -112,10 +113,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
   					this.user.status = status
   				}
   			},
+  			inviteUserToChannel(channelId, userId) {
+  				console.log(channelId, userId)
+  			},
   			leaveChannel(channelId) {
   				console.log(channelId)
   			},
-  			acceptInvitation(channelId) {
+  			joinChannel(channelId) {
   				console.log(channelId)
   			},
   			revokeInvitation(channelId) {
