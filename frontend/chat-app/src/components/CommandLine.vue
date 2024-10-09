@@ -37,8 +37,10 @@ export default {
 
     methods: {
         postMessage(){
-            chatStore.postMessage(this.editorContent)
-            this.editorContent = ''
+            if(this.isMessage){
+                chatStore.postMessage(this.editorContent)
+                    this.editorContent = ''
+            }
         },
         handleKeyDown(key){
             if(key.code == 'Enter'){
