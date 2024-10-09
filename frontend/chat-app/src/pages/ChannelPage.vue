@@ -59,9 +59,17 @@ watch(() => channelStore.messages, async (newMessages) => {
 .channel-name i{
   font-size: 24px;
 }
+
 .channel-messages {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow: scroll;
+}
+
+.channel-messages .message:nth-of-type(1){
+  margin-top: auto;
+
 }
 
 section.channel-wraper{
