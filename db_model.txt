@@ -1,0 +1,56 @@
+Table user {
+  id integer [primary key]
+  first_name string
+  last_name string
+  email string
+  password string
+  nickname string
+  status userstatus
+}
+
+Enum userstatus {
+  online
+  dnd
+  offline
+}
+
+Table channel {
+  id integer [primary key]
+  admin_id integer
+  name string
+  type channeltype
+}
+
+Enum channeltype {
+  private
+  public
+}
+
+Table message {
+  id integer [primary key]
+  author_id integer
+  channel_id integer
+  message_content string
+  sent_at timestamp
+  type messagetype
+}
+
+Enum messagetype {
+  system
+  message
+}
+
+Table user_channels {
+  user_id integer
+  channel_id integer
+  pending_invite boolean
+  banned boolean
+  kick_count integer
+}
+
+
+ref: user.id < message.author_id
+ref: user.id < channel.admin_id
+ref: user.id < user_channels.user_id
+ref: channel.id < user_channels.channel_id
+ref: message.channel_id - channel.id
