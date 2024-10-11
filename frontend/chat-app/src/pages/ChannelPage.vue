@@ -15,7 +15,7 @@
             />
             
             <!-- System message rendering -->
-            <div v-else>
+            <div v-if="item.type == 'system' && item.command_type == 'list'">
               {{ channelStore.current_channel?.channel_members }}
             </div>
           </template>

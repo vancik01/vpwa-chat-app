@@ -127,6 +127,14 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
   			joinChannel(channelId) {
   				console.log(channelId)
+          this.channels.push({
+            channel_members: [],
+            has_new_messages: 0,
+            id: channelId,
+            is_someone_typing: false,
+            type: 'private',
+            user_typing: null,
+          })
   			},
   			revokeInvitation(channelId) {
   				console.log(channelId)
