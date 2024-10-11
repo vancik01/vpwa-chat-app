@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
+import { inviteRegex, joinRegex, leaveRegex, listRegex, revokeRegex } from 'src/utils/regex'
 
 interface ChannelState {
   current_channel: Channel | null,
@@ -58,11 +59,6 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   		actions: {
 			postMessage(messageContent: string) {
 				// Regular expressions for commands
-				const joinRegex = /^\/join\s+(\w+)?$/;
-				const inviteRegex = /^\/invite\s+(\w+)$/;
-				const revokeRegex = /^\/revoke\s+(\w+)$/;
-				const listRegex = /^\/list$/;
-				const leaveRegex = /^\/leave$/;
 				const userStore = useUserStore()
 			  
 				// Check if the message starts with a command

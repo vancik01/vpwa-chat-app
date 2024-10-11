@@ -12,19 +12,48 @@
                     <div class="message-user-name">{{message.type == "message" ? message.from.display_name : "Bot"}}</div>
                     <div class="message-time">{{message.sent_at}}</div>
                 </div>
-                <p v-html="props.message.message_content" />
+                <p>
+                    <template v-for="(content, index) in parseMessageContent(props.message.message_content)" :key="index">
+                        <component v-if="typeof content === 'object'" :is="content" />
+                        <span v-else v-html="content"></span>
+                    </template>
+                </p>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
+import { h, VNode } from 'vue';
+import { usernameRegex } from 'src/utils/regex';
 import { Message } from './models';
 import StatusDot from './StatusDot.vue';
+import MessageMention from './MessageMention.vue';
+import { useUserStore } from 'src/stores/userStore';
 
+const userStore = useUserStore()
 const props = defineProps<{
     message: Message
 }>()
+
+function parseMessageContent(messageContent: string): (string | VNode)[] {
+    const parts: string[] = messageContent.split(usernameRegex);
+    const matches = [...messageContent.matchAll(usernameRegex)];
+
+    const result: (string | VNode)[] = [];
+
+    parts.forEach((part, index) => {
+        if (part) {
+            result.push(part);
+        }
+        if (matches[index]) {
+            const nickname = matches[index][0].substring(1);
+            result.push(h(MessageMention, { nickname: nickname, isCurrentUserMentioned: userStore.user ? userStore.user.nickname === nickname : false })); // Create a VNode for StatusDot component
+        }
+    });
+
+    return result;
+}
 </script>
 
 <style scoped>
@@ -91,5 +120,4 @@ const props = defineProps<{
     right: -2px;
     bottom: -0px;
 }
-
 </style>
