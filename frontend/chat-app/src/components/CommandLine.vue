@@ -85,6 +85,5 @@ export default {
         position: absolute;
         right:24px;
         bottom: 32px;
-        
     }
 </style>

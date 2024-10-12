@@ -19,8 +19,11 @@
               {{ channelStore.current_channel?.channel_members }}
             </div>
           </template>
-        
         </div>
+        <div class="is-typing-component">
+          <strong>User Name</strong> is typing ...
+        </div>
+        
     </section>
   
 </template>
@@ -73,11 +76,7 @@ watch(() => channelStore.messages, async (newMessages) => {
   flex-direction: column;
   height: 100%;
   overflow: scroll;
-}
-
-.channel-messages .message:nth-of-type(1){
-  margin-top: auto;
-
+  padding-bottom: 20px;
 }
 
 section.channel-wraper{
@@ -89,4 +88,22 @@ section.channel-wraper{
   display: flex;
   flex-direction: column;
 }
+
+.channel-messages .message:nth-of-type(1){
+  margin-top: auto;
+}
+
+.channel-messages {
+  position: relative;
+}
+
+.is-typing-component{
+  position: absolute;
+  padding: 4px 20px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+}
+
 </style>
