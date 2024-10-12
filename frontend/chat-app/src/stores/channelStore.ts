@@ -2,20 +2,25 @@ import { defineStore } from 'pinia'
 import { Channel, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
 import { inviteRegex, joinRegex, leaveRegex, listRegex, revokeRegex } from 'src/utils/regex'
+import { fetchMessages } from 'src/utils/simulateBackend'
 
 interface ChannelState {
   current_channel: Channel | null,
   messages: Message[],
-  is_loading: boolean
+  is_loading: boolean,
+  is_loading_infinite: boolean,
+  page:number
 }
 
 export const useChannelStore = defineStore<'channelStore', ChannelState, NonNullable<unknown>, {
   postMessage: (messageContent:string, messageType:MessageType) => void,
-  loadMessages: () => void,
+  loadMessages: (page:number) => Promise<Message[]>,
   setCurrentChannel: (channelId:string) => void,
   	}>('channelStore', {
   		state: (): ChannelState => ({
 			is_loading:false,
+			is_loading_infinite:false,
+			page: 0,
   			current_channel: {
   				id: '1',
   				has_new_messages:0,
@@ -30,28 +35,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   					}
   				]
   			},
-  			messages: [
-  				{
-  					type:'message',
-  					message_content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita dicta aperiam aut nemo eius consequuntur culpa, laudantium velit? Molestiae, commodi amet. Quasi nesciunt assumenda, sint debitis officia eius earum molestias?',
-  					from: {
-  						display_name:'Display Name',
-  						nickname:'user_123',
-  						status:'online'
-  					},
-					sent_at:'10:24'
-  				},
-  				{
-  					type:'message',
-  					message_content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita dicta aperiam aut nemo eius consequuntur culpa, laudantium velit? Molestiae, commodi amet. Quasi nesciunt assumenda, sint debitis officia eius earum molestias?',
-  					from: {
-  						display_name:'Display Name 2',
-  						nickname:'user_123_other_than_ours',
-  						status:'online'
-  					},
-					sent_at:'10:24'
-  				}
-  			]
+  			messages: []
   		}),
   		getters: {
   			// Add getters here if needed with types
@@ -107,20 +91,34 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  }
 				}
 			  },
-  			loadMessages() {
-  				// Handle pagination logic in later phase
-  				console.log('messages')
-  			},
-			setCurrentChannel(channelId){
+  			async loadMessages(page: number) {
+				console.log('Loading page:', page);
+		  
+				if (this.current_channel) {
+				  // Simulate backend delay
+				  return new Promise((resolve) => {
+					setTimeout(() => {
+					  const messages = fetchMessages()
+					  resolve(messages);
+					}, 1000); // Simulate 1 second backend delay
+				  });
+				} else {
+				  return [];
+				}
+			},
+			async setCurrentChannel(channelId){
+				this.is_loading = true;
 				const userStore = useUserStore()
+				this.page = 0,
 				this.router.push(`/channel/${channelId}`)
-				this.is_loading = true
 				if(this.current_channel?.id) this.current_channel.id = channelId
 				userStore.viewedMessageInChannel(channelId)
-				setTimeout(() => {	
-					this.is_loading = false
-				}, 1000)
+				this.messages = await this.loadMessages(this.page) // load first 10 messages
+				this.is_loading = false;
 				// load data fomr DB
-			}
+			},
+			// handleInfinityScroll(){
+
+			// }
   		}
   	})

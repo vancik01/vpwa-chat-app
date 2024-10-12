@@ -4,55 +4,91 @@
         <div class="channel-name">
           <q-icon v-if="channelStore.current_channel?.type === 'private'" name="lock" />
           <q-icon v-else name="tag" />
-        <span>{{ channelStore.current_channel?.id }}</span>
+          <span>{{ channelStore.current_channel?.id }}</span>
         </div>
-        <div ref="messageContainer" class="channel-messages" v-if="channelStore.messages && !channelStore.is_loading">
-          <template v-for="(item, i) in channelStore.messages" :key="`${item.sent_at}-${i}`">
-            <!-- Conditionally render based on the message type -->
-            <ChannelMessage
-              v-if="item.type === 'message'"
-              :message="item"
+        <div class="channel-messages">
+          <div v-if="channelStore.page === 0 && channelStore.is_loading" class="init-loading">
+            <q-spinner-tail
+              color="primary"
+              size="2em"
             />
-            
-            <!-- System message rendering -->
-            <div v-if="item.type == 'system' && item.command_type == 'list'">
-              {{ channelStore.current_channel?.channel_members }}
-            </div>
-          </template>
+          </div>
+            <q-scroll-area v-else class="message-scroll-wraper" ref="chatScroll">
+              <q-infinite-scroll  @load="onLoadNew" :offset="0" reverse>
+                <template  v-for="(item, i) in channelStore.messages" :key="`${item.sent_at}-${i}`">
+                  <!-- Conditionally render based on the message type -->
+                  <ChannelMessage
+                    v-if="item.type === 'message'"
+                    :message="item"
+                  />
+                  
+                  <!-- System message rendering -->
+                  <div v-if="item.type == 'system' && item.command_type == 'list'" class="message system">
+                    {{ channelStore.current_channel?.channel_members }}
+                  </div>
+                </template>
+                <template v-slot:loading>
+                  <div class="row justify-center q-my-md">
+                    <q-spinner-dots color="primary" size="40px" />
+                  </div>
+                </template>
+              </q-infinite-scroll>
+            </q-scroll-area>
         </div>
         <div class="is-typing-component">
           <strong>User Name</strong> is typing ...
         </div>
         
     </section>
-  
 </template>
 
 <script setup lang="ts">
+import { QScrollArea } from 'quasar';
 import ChannelMessage from 'src/components/ChannelMessage.vue';
 import { useChannelStore } from 'src/stores/channelStore';
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, onMounted, ref  } from 'vue';
+import { useRoute } from 'vue-router';
 const channelStore = useChannelStore()
+const route = useRoute()
 
-const messageContainer = ref<HTMLElement | null>(null)
+const chatScroll = ref<null | QScrollArea>()
 
 defineOptions({
   name: 'ChannelPage'
 });
 
-// scroll on new message
-watch(() => channelStore.messages, async (newMessages) => {
-  if (newMessages && newMessages.length) {
-    // Ensure DOM has updated before scrolling
-    await nextTick()
+async function onLoadNew(index: number, done: VoidFunction) {
+  channelStore.page = index;
+  channelStore.is_loading = true;
+  const newMessages = await channelStore.loadMessages(index);
+  channelStore.messages.unshift(...newMessages);
+  channelStore.is_loading = false;
+  done();
+}
 
-    // Scroll the container to the bottom
-    if (messageContainer.value) {
-      messageContainer.value.scrollTop = messageContainer.value.scrollHeight
-    }
+onMounted(() => {
+  if(route.params.id){
+    channelStore.setCurrentChannel(route.params.id as string)
   }
-}, { deep: true })
+})
 
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatScroll.value) {
+      chatScroll.value.setScrollPercentage('vertical', 200)
+    }
+  });
+};
+
+channelStore.$onAction(({ name, after }) => {
+      if (name === 'postMessage') {
+        after(() => {
+          // Scroll to bottom after a new message is added
+          console.log('Wocap')
+          scrollToBottom();
+        });
+      }
+    });
 
 </script>
 
@@ -72,11 +108,18 @@ watch(() => channelStore.messages, async (newMessages) => {
 }
 
 .channel-messages {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: scroll;
   padding-bottom: 20px;
+}
+
+.message-scroll-wraper{
+  height: 100%;
+}
+.message-scroll-wraper-wraper{
+  height: 100%;
 }
 
 section.channel-wraper{
@@ -104,6 +147,17 @@ section.channel-wraper{
   left: 0;
   right: 0;
   background-color: white;
+}
+
+.init-loading{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 </style>
