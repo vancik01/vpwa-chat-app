@@ -3,8 +3,9 @@
     class="channel-box"
     :class="{
       'active': isActive,
-      'new-message': channel.has_new_messages > 0 }"
-    @click="selectChannel(channel.id)">
+      'new-message': channel.has_new_messages > 0,
+      'invitation': isInvitation}"
+    @click="handleClick">
     
     <q-icon v-if="channel.type === 'private'" name="lock" />
     <q-icon v-else name="tag" />
@@ -21,7 +22,8 @@ export default {
   name: 'ChannelBox',
   props: {
     channel: Object,
-    isActive: Boolean
+    isActive: Boolean,
+    isInvitation: Boolean
   },
   data() {
     return {
@@ -30,9 +32,11 @@ export default {
     };
   },
   methods: {
-    selectChannel(id) {
-      this.channelStore.setCurrentChannel(id)
-    }
+    handleClick() {
+      if (this.isInvitation == false) {
+        this.channelStore.setCurrentChannel(this.channel.id);
+      }
+    },
   }
 };
 </script>

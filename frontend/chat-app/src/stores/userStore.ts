@@ -3,7 +3,8 @@ import { Channel, User, UserCreateAccountProps, UserStatus } from 'src/component
 
 interface UserState {
   user: User | null,
-  channels: Channel[]
+  channels: Channel[],
+  invitations: Channel[]
 }
 
 export const useUserStore = defineStore<'userStore', UserState, {
@@ -19,6 +20,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   revokeInvitation: (channelId: string, nickname:string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
+  acceptInvitation: (channelId: string) => void,
+  rejectInvitation: (channelId: string) => void,
 }>('userStore', {
   		state: (): UserState => ({
   			user: {
@@ -84,7 +87,24 @@ export const useUserStore = defineStore<'userStore', UserState, {
             is_someone_typing: false,
             user_typing: null
           }          
-  			]
+  			],
+        
+        invitations: [
+          { id: 'channel_invite_1',
+            has_new_messages: 0,
+            type: 'public',
+            channel_members: [],
+            is_someone_typing: false,
+            user_typing: null
+          },
+          {
+            id: 'channel_invite_2',
+            has_new_messages: 0,
+            type: 'private',
+            channel_members: [],
+            is_someone_typing: false,
+            user_typing: null}
+        ]
   		}),
   		getters: {
   			is_logged_in (){
@@ -148,8 +168,21 @@ export const useUserStore = defineStore<'userStore', UserState, {
   				if (channel) {
   					channel.has_new_messages = 0;
   				}
-      
   			},
+        acceptInvitation(channelId) {
+          const invitationIndex = this.invitations.findIndex((inv) => inv.id === channelId);
+          if (invitationIndex !== -1) {
+            const acceptedChannel = this.invitations[invitationIndex];
+            this.channels.unshift(acceptedChannel);
+            this.invitations.splice(invitationIndex, 1);
+          }
+        },
+        rejectInvitation(channelId) {
+          const invitationIndex = this.invitations.findIndex((inv) => inv.id === channelId);
+          if (invitationIndex !== -1) {
+            this.invitations.splice(invitationIndex, 1);
+          }
+        },
     
   		}
   	})

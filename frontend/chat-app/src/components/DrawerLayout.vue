@@ -9,6 +9,7 @@
             <!-- channels section -->
             <div class="channels-section">
                 <h6 class="text-h6 text-weight-bold">Channels</h6>
+                <ChannelInvitations/>
                 <ChannelList/>
             </div>
 
@@ -24,6 +25,7 @@
 import { useUserStore } from 'src/stores/userStore';
 import UserStatusBar from './UserStatusBar.vue';
 import ChannelList from './ChannelList.vue';
+import ChannelInvitations from './ChannelInvitations.vue';
 
 export default {
     props: ['leftDrawerOpen'],
@@ -41,7 +43,8 @@ export default {
     },
     components:{
         UserStatusBar,
-        ChannelList
+        ChannelList,
+        ChannelInvitations
     }
 }
 </script>
