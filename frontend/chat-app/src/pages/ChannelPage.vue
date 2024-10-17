@@ -5,6 +5,7 @@
           <q-icon v-if="channelStore.current_channel?.type === 'private'" name="lock" />
           <q-icon v-else name="tag" />
           <span>{{ channelStore.current_channel?.id }}</span>
+          {{ channelStore.current_channel?.type }}
         </div>
         <div class="channel-messages">
           <div v-if="channelStore.page === 0 && channelStore.is_loading" class="init-loading">

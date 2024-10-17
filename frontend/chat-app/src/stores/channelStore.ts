@@ -107,14 +107,22 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				}
 			},
 			async setCurrentChannel(channelId){
-				this.is_loading = true;
-				const userStore = useUserStore()
-				this.page = 0,
-				this.router.push(`/channel/${channelId}`)
-				if(this.current_channel?.id) this.current_channel.id = channelId
-				userStore.viewedMessageInChannel(channelId)
-				this.messages = await this.loadMessages(this.page) // load first 10 messages
-				this.is_loading = false;
+				if(this.current_channel){
+					this.is_loading = true;
+					const userStore = useUserStore()
+					const newChannel = userStore.channels.find((value) => value.id == channelId)
+					this.page = 0,
+					this.router.push(`/channel/${channelId}`)
+					if(this.current_channel?.id) this.current_channel.id = channelId
+					if(newChannel && this.current_channel.type){
+						console.log(newChannel)
+						this.current_channel.type = newChannel.type
+					}
+					
+					userStore.viewedMessageInChannel(channelId)
+					this.messages = await this.loadMessages(this.page) // load first 10 messages
+					this.is_loading = false;
+				}
 				// load data fomr DB
 			},
 			// handleInfinityScroll(){
