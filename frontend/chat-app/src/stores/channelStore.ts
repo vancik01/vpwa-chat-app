@@ -106,6 +106,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  return [];
 				}
 			},
+			
 			async setCurrentChannel(channelId){
 				if(this.current_channel){
 					this.is_loading = true;
