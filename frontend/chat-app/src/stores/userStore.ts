@@ -22,6 +22,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   viewedMessageInChannel: (channelId: string) => void,
   acceptInvitation: (channelId: string) => void,
   rejectInvitation: (channelId: string) => void,
+  isAdmin:(channelId: string) => boolean
 }>('userStore', {
   		state: (): UserState => ({
   			user: {
@@ -37,7 +38,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'public',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id:'very_long_channel_name_without_new_messages',
@@ -45,7 +47,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'public',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id:'very_long_channel_name_with_new_messages',
@@ -53,7 +56,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'private',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id:'channel_1',
@@ -61,7 +65,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'private',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id:'channel_2',
@@ -69,7 +74,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'private',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id: 'channel_3',
@@ -77,15 +83,17 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'public',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
-            id: 'channel_4',
+            id: 'channel_and_user_123_is_admin',
             has_new_messages: 0,
             type: 'public',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: 'user_123'
           }          
   			],
         
@@ -95,7 +103,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'public',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null
+            user_typing: null,
+            admin_id: ''
           },
           {
             id: 'channel_invite_2',
@@ -103,7 +112,9 @@ export const useUserStore = defineStore<'userStore', UserState, {
             type: 'private',
             channel_members: [],
             is_someone_typing: false,
-            user_typing: null}
+            user_typing: null,
+            admin_id: ''
+          }
         ]
   		}),
   		getters: {
@@ -154,14 +165,19 @@ export const useUserStore = defineStore<'userStore', UserState, {
             is_someone_typing: false,
             type: 'private',
             user_typing: null,
+            admin_id: ''
           })
   			},
   			revokeInvitation(channelId) {
   				console.log(channelId)
   			},
   			deleteChannel(channelId) {
-  				//handle delete channel logic - do not allow if not admin
-  				console.log(channelId)
+  				const channel = this.channels.find(channel => channel.id === channelId);
+          if (channel?.admin_id !== this.user?.nickname) {
+            return;
+          }
+          this.leaveChannel(channelId);
+
   			},
   			viewedMessageInChannel(channelId) {
   				const channel = this.channels.find((channel) => channel.id === channelId);
@@ -183,6 +199,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
             this.invitations.splice(invitationIndex, 1);
           }
         },
-    
+        isAdmin(channelId) {
+          const channel = this.channels.find(channel => channel.id === channelId);
+          if (channel && channel.admin_id === this.user?.nickname) {
+            return true
+          }
+          else {return false}
+        }
   		}
   	})

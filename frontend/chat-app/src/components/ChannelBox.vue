@@ -4,19 +4,25 @@
     :class="{
       'active': isActive,
       'new-message': channel.has_new_messages > 0,
-      'invitation': isInvitation}"
-    @click="handleClick">
+      'invitation': isInvitation,}"
+      @click="handleClick">
     
     <q-icon v-if="channel.type === 'private'" name="lock" />
     <q-icon v-else name="tag" />
     <span class="channel-name q-px-xs">{{ channel.id }}</span>
     <div v-if="channel.has_new_messages > 0" class="new-messages">{{ channel.has_new_messages }}</div>
+
+    <ChannelControls 
+      v-if="!isInvitation"
+      :isAdmin="userStore.isAdmin(channel.id)" 
+      @optionSelected="handleOption"/>
   </div>
 </template>
 
 <script>
 import { useUserStore } from 'src/stores/userStore';
 import { useChannelStore } from 'src/stores/channelStore';
+import ChannelControls from './ChannelControls.vue';
 
 export default {
   name: 'ChannelBox',
@@ -25,10 +31,13 @@ export default {
     isActive: Boolean,
     isInvitation: Boolean
   },
+  components: {
+    ChannelControls
+  },
   data() {
     return {
       userStore: useUserStore(),
-      channelStore: useChannelStore()
+      channelStore: useChannelStore(),
     };
   },
   methods: {
@@ -37,6 +46,14 @@ export default {
         this.channelStore.setCurrentChannel(this.channel.id);
       }
     },
+    handleOption(option) {
+      if (option === 'leave'){
+        this.userStore.leaveChannel(this.channel.id);
+      }
+      else if (option === 'delete') {
+        this.userStore.deleteChannel(this.channel.id);
+      }
+    }
   }
 };
 </script>
@@ -80,7 +97,6 @@ export default {
   font-size: 12px; 
   line-height: 12px;
 }
-
 
 .channel-name {
   flex-grow: 1; 

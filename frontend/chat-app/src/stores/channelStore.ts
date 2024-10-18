@@ -27,6 +27,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   				type: 'private',
   				is_someone_typing:false,
   				user_typing: null,
+				admin_id: '',
   				channel_members: [
   					{
   						display_name:'Display Name',

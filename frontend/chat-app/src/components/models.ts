@@ -27,7 +27,8 @@ export type Channel = {
   has_new_messages: number,
   channel_members: ChannelMember[],
   is_someone_typing: boolean,
-  user_typing: ChannelMember | null
+  user_typing: ChannelMember | null,
+  admin_id: User['nickname']
   // ...
 }
 
