@@ -13,8 +13,9 @@
             label="Create channel"
             icon="add"
             class="full-width create-channel-btn"
-            @click="createChannel"/>
+            @click="openCreateChannelPopup"/>
         </div>
+        <CreateChannelPopup ref="createChannelPopup"/>
     </div>
 </template>
 
@@ -22,10 +23,12 @@
 import { useUserStore } from 'src/stores/userStore';
 import { useChannelStore } from 'src/stores/channelStore';
 import ChannelBox from './ChannelBox.vue';
+import CreateChannelPopup from './CreateChannelPopup.vue';
 
 export default {
     components: {
-        ChannelBox
+        ChannelBox,
+        CreateChannelPopup
     },
 
     data() {
@@ -36,8 +39,9 @@ export default {
     },
 
     methods: {
-        createChannel() {
-        }
+        openCreateChannelPopup() {
+            this.$refs.createChannelPopup.isPopupOpen = true;
+        },
     }   
 }
 </script>

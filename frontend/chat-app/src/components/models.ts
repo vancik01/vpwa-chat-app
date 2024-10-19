@@ -21,9 +21,11 @@ export type ChannelMember = {
   status: UserStatus
 }
 
+export type ChannelType = 'private' | 'public'
+
 export type Channel = {
   id:string,
-  type: 'private' | 'public',
+  type: ChannelType,
   has_new_messages: number,
   channel_members: ChannelMember[],
   is_someone_typing: boolean,

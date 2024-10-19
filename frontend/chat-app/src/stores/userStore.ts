@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { Channel, User, UserCreateAccountProps, UserStatus } from 'src/components/models'
+import { Channel, User, UserCreateAccountProps, UserStatus, ChannelType } from 'src/components/models'
+import { channelNameRegex } from 'src/utils/regex'
 
 interface UserState {
   user: User | null,
@@ -22,7 +23,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   viewedMessageInChannel: (channelId: string) => void,
   acceptInvitation: (channelId: string) => void,
   rejectInvitation: (channelId: string) => void,
-  isAdmin:(channelId: string) => boolean
+  isAdmin:(channelId: string) => boolean,
+  createChannel(channelId: string, isPrivate: boolean, usernames: string | undefined): boolean
 }>('userStore', {
   		state: (): UserState => ({
   			user: {
@@ -205,6 +207,41 @@ export const useUserStore = defineStore<'userStore', UserState, {
             return true
           }
           else {return false}
+        },
+        createChannel(channelId, isPrivate, usernames) {
+
+          if (!channelNameRegex.test(channelId)) {
+            return false;
+          }
+
+          const channelExists = this.channels.some(channel => channel.id === channelId);
+          if (channelExists) {
+            return false;
+          }
+          
+          const usernamesArray = usernames
+          ? usernames
+              .split(',')
+              .map(username => username.trim())
+              .filter(username => username) 
+          : [];
+          
+          const newChannel = {
+            id: channelId,
+            has_new_messages: 0,
+            type: isPrivate ? 'private' : 'public' as ChannelType,
+            channel_members: usernamesArray.map(username => ({
+              display_name: username,
+              nickname: username,
+              status: 'online' as UserStatus,
+            })),
+            is_someone_typing: false,
+            user_typing: null,
+            admin_id: this.user?.nickname || '',
+          };
+        
+          this.channels.unshift(newChannel);
+          return true;
         }
   		}
   	})

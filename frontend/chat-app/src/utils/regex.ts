@@ -4,3 +4,4 @@ export const revokeRegex = /^\/revoke\s+(\w+)$/;
 export const listRegex = /^\/list$/;
 export const leaveRegex = /^\/leave$/;
 export const usernameRegex = /@\w+/g;
+export const channelNameRegex = /^[a-z0-9_-]+$/;
