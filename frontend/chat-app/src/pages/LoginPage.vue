@@ -26,6 +26,9 @@
   </template>
 
 <script>
+import { Notify } from 'quasar';
+import { useUserStore } from 'src/stores/userStore';
+
 export default {
   data() {
     return {
@@ -37,11 +40,19 @@ export default {
     onSubmit() {
       const formIsValid = this.$refs.form.validate();
       if (formIsValid) {
-        this.$router.push('/');
+        const result = useUserStore().login(this.email, this.password);
+        Notify.create({
+          type: result.error ? 'negative' : 'positive',
+          message: result.error || result.success,
+          timeout: 3000
+        });
+        if (result.success) {
+          this.$router.push('/');
+        }
+        }
       }
     }
-  }
-};
+  };
 </script>
 
 <style scoped>

@@ -11,7 +11,7 @@ interface UserState {
 export const useUserStore = defineStore<'userStore', UserState, {
   is_logged_in: () => boolean
   	}, {
-  login: (email: string, password: string) => void
+  login: (email: string, password: string) => { success?: string; error?: string }
   logout: () => void
   createAccount: (createAccountProps:UserCreateAccountProps) => void
   setStatus: (status: UserStatus) => void,
@@ -127,12 +127,26 @@ export const useUserStore = defineStore<'userStore', UserState, {
   		actions: {
   			login(email, password) {
   				console.log(email, password)
+          
+          //dummy data
+          const knownUserEmail = 'user_123@email.com';
+          const knownUserPassword = 'password';
+
+          if (email !== knownUserEmail) {
+            return { error: 'User not found' };
+          }
+    
+          else if (password !== knownUserPassword) {
+            return { error: 'Incorrect password!' };
+          }
+
   				this.user = {
   					display_name:'Display name',
   					nickname: 'user_123',
   					token:'example_token_123',
   					status: 'online'
   				}
+          return { success: 'Login successful!' };
   			},
   			logout() {
           this.router.push('/auth/login')
@@ -140,6 +154,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
   			createAccount(createAccountProps) {
   				console.log(createAccountProps)
+          this.user = {
+  					display_name:'Display name',
+  					nickname: 'user_123',
+  					token:'example_token_123',
+  					status: 'online'
+  				}
   			},
   			setStatus(status: UserStatus) {
   				if(this.user) {

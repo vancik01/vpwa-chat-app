@@ -36,6 +36,9 @@
   </template>
 
 <script>
+import { Notify } from 'quasar';
+import { useUserStore } from 'src/stores/userStore';
+
 export default {
   data() {
     return {
@@ -51,6 +54,19 @@ export default {
     onSubmit() {
       const formIsValid = this.$refs.form.validate();
       if (formIsValid) {
+        const accountProps = {
+          first_name: this.firstName,
+          last_name: this.lastName,
+          nickname: this.nickname,
+          email: this.email,
+          password: this.password,
+        };
+        useUserStore().createAccount(accountProps)
+        Notify.create({
+          type: 'positive',
+          message: 'Registration successful!',
+          timeout: 3000
+        });
         this.$router.push('/');
       }
     }
