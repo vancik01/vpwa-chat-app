@@ -24,9 +24,11 @@
                   />
                   
                   <!-- System message rendering -->
-                  <div v-if="item.type == 'system' && item.command_type == 'list'" class="message system">
-                    {{ channelStore.current_channel?.channel_members }}
-                  </div>
+                  <SystemMessage
+                    v-if="item.type === 'system'"
+                    :commandType="item.command_type"
+                    :users="channelStore.current_channel?.channel_members"
+                    :invitedUser="item.invited_user"/>
                 </template>
                 <template v-slot:loading>
                   <div class="row justify-center q-my-md">
@@ -46,6 +48,7 @@
 <script setup lang="ts">
 import { QScrollArea } from 'quasar';
 import ChannelMessage from 'src/components/ChannelMessage.vue';
+import SystemMessage from 'src/components/SystemMessage.vue';
 import { useChannelStore } from 'src/stores/channelStore';
 import { nextTick, onMounted, ref  } from 'vue';
 import { useRoute } from 'vue-router';

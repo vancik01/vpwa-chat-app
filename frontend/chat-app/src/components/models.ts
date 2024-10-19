@@ -35,7 +35,7 @@ export type Channel = {
 }
 
 export type MessageType = 'message' | 'system';
-export type SystemMessageType = 'list';
+export type SystemMessageType = 'list' | 'invite';
 
 export type TextMessage = {
     type: 'message';
@@ -48,6 +48,8 @@ export type SystemMessage = {
     type: 'system';
     command_type:SystemMessageType;
     sent_at: string;
+    invited_user?: string;
+    channel_members?: ChannelMember[];
 };
 
 export type Message = TextMessage | SystemMessage;

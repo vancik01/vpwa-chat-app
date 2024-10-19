@@ -56,7 +56,18 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				} else if ((commandMatch = messageContent.match(inviteRegex))) {
 				  const nickName = commandMatch[1];
 				  console.log({nickName});
-				  userStore.inviteUserToChannel(this.current_channel?.id as string, nickName)
+				  const canInvite = userStore.inviteUserToChannel(this.current_channel?.id as string, nickName)
+					
+				  if (canInvite) {
+					const systemMessage: Message = {
+						command_type: 'invite',
+						invited_user: nickName, 
+						sent_at: new Date().toLocaleTimeString(),
+						type: 'system',
+					};
+				
+					this.messages.push(systemMessage);
+					}
 			  
 				} else if ((commandMatch = messageContent.match(revokeRegex))) {
 				  const nickName = commandMatch[1];

@@ -17,7 +17,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   setStatus: (status: UserStatus) => void,
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
-  inviteUserToChannel: (channelId: string, userId:string) => void,
+  inviteUserToChannel: (channelId: string, userId:string) => boolean,
   revokeInvitation: (channelId: string, nickname:string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
@@ -147,7 +147,14 @@ export const useUserStore = defineStore<'userStore', UserState, {
   				}
   			},
   			inviteUserToChannel(channelId, userId) {
-  				console.log(channelId, userId)
+          console.log(channelId, userId)
+          const channel = this.channels.find(channel => channel.id === channelId);
+          if ((channel?.type === 'private') && (!this.isAdmin(channelId))){
+            return false
+          }
+          else {
+            return true
+          }
   			},
   			leaveChannel(channelId) {
           const channelIndex = this.channels.findIndex(channel => channel.id === channelId);
@@ -225,20 +232,22 @@ export const useUserStore = defineStore<'userStore', UserState, {
               .map(username => username.trim())
               .filter(username => username) 
           : [];
+          console.log(usernamesArray);
           
           const newChannel = {
             id: channelId,
             has_new_messages: 0,
             type: isPrivate ? 'private' : 'public' as ChannelType,
-            channel_members: usernamesArray.map(username => ({
-              display_name: username,
-              nickname: username,
-              status: 'online' as UserStatus,
-            })),
+            channel_members: this.user ? [{
+              display_name: this.user.nickname,
+              nickname: this.user.nickname,
+              status: this.user.status,
+          }] : [],
             is_someone_typing: false,
             user_typing: null,
             admin_id: this.user?.nickname || '',
           };
+          console.log(newChannel.channel_members)
         
           this.channels.unshift(newChannel);
           return true;
