@@ -6,12 +6,18 @@ Table user {
   password string
   nickname string
   status userstatus
+  notifications_status notifications_status
 }
 
 Enum userstatus {
   online
   dnd
   offline
+}
+
+Enum notifications_status {
+  all
+  only_mentions
 }
 
 Table channel {
