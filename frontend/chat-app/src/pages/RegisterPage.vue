@@ -36,7 +36,6 @@
   </template>
 
 <script>
-import { Notify } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
 
 export default {
@@ -62,11 +61,6 @@ export default {
           password: this.password,
         };
         useUserStore().createAccount(accountProps)
-        Notify.create({
-          type: 'positive',
-          message: 'Registration successful!',
-          timeout: 3000
-        });
         this.$router.push('/');
       }
     }

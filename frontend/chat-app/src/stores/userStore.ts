@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, User, UserCreateAccountProps, UserStatus, ChannelType } from 'src/components/models'
 import { channelNameRegex } from 'src/utils/regex'
+import { Notify } from 'quasar';
 
 interface UserState {
   user: User | null,
@@ -154,12 +155,18 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
   			createAccount(createAccountProps) {
   				console.log(createAccountProps)
+          Notify.create({
+            type: 'positive',
+            message: 'Registration successful!',
+            timeout: 3000
+          });
           this.user = {
   					display_name:'Display name',
   					nickname: 'user_123',
   					token:'example_token_123',
   					status: 'online'
   				}
+          
   			},
   			setStatus(status: UserStatus) {
   				if(this.user) {
@@ -183,6 +190,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
           }
           this.router.push('/')
 
+          Notify.create({
+              color: 'warning',
+              textColor: 'black',
+              message: `You left "${channelId}" channel.`,
+              timeout: 3000,
+              position: 'top-right'
+          });
           console.log('leave', channelId)
   			},
   			joinChannel(channelId) {
@@ -205,6 +219,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
           if (channel?.admin_id !== this.user?.nickname) {
             return;
           }
+          Notify.create({
+            color: 'negative',
+            message: `Channel "${channelId}" was deleted.`,
+            timeout: 3000,
+            position: 'top-right'
+          });
           this.leaveChannel(channelId);
 
   			},
@@ -270,6 +290,11 @@ export const useUserStore = defineStore<'userStore', UserState, {
           console.log(newChannel.channel_members)
         
           this.channels.unshift(newChannel);
+          Notify.create({
+            type: 'positive',
+            message: `Channel "${channelId}" was successfully created!`,
+            timeout: 3000
+          });
           return true;
         }
   		}

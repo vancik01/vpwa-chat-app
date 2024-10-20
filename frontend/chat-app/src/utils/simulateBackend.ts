@@ -3,7 +3,7 @@ import { Message } from 'src/components/models';
 
 export function fetchMessages() {
   
-  const messages = Array(10).fill(0).map((_, index:number) => {
+  const messages = Array(10).fill(0).map(() => {
     const date = faker.date.recent();
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -11,7 +11,7 @@ export function fetchMessages() {
   
     const object:Message = {
       type: 'message',
-      message_content: index + faker.lorem.paragraph(),
+      message_content: faker.lorem.paragraph(),
       from: {
         display_name: faker.person.fullName(),
         nickname: faker.internet.userName(),

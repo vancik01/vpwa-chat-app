@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
-import { inviteRegex, joinRegex, leaveRegex, listRegex, revokeRegex } from 'src/utils/regex'
+import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex } from 'src/utils/regex'
 import { fetchMessages } from 'src/utils/simulateBackend'
 
 interface ChannelState {
@@ -73,7 +73,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  const nickName = commandMatch[1];
 				  userStore.revokeInvitation(this.current_channel?.id as string, nickName)
 			  
-				} else if ((commandMatch = messageContent.match(leaveRegex))) {
+				} else if ((commandMatch = messageContent.match(cancelRegex)) || (commandMatch = messageContent.match(quitlRegex))) {
 					userStore.leaveChannel(this.current_channel?.id as string)
 				
 				} else if ((commandMatch = messageContent.match(listRegex))) {

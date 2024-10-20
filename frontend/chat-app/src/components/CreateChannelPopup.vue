@@ -32,7 +32,6 @@
   
 <script>
   import { useUserStore } from 'src/stores/userStore';
-  import { Notify } from 'quasar';
 
   export default {
     name: 'CreateChannelPopup',
@@ -51,11 +50,6 @@
         const result = this.userStore.createChannel(this.channelName, this.isPrivate, this.usernames);
         if (result) {
           this.isPopupOpen = false;
-          Notify.create({
-            type: 'positive',
-            message: `Channel "${this.channelName}" was successfully created!`,
-            timeout: 3000
-          });
         } else {
           this.errorMessage = 'Invalid channel name';
         }

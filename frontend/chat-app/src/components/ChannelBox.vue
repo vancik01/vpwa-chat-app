@@ -23,7 +23,6 @@
 import { useUserStore } from 'src/stores/userStore';
 import { useChannelStore } from 'src/stores/channelStore';
 import ChannelControls from './ChannelControls.vue';
-import { Notify } from 'quasar';
 
 export default {
   name: 'ChannelBox',
@@ -50,20 +49,9 @@ export default {
     handleOption(option) {
       if (option === 'leave'){
         this.userStore.leaveChannel(this.channel.id);
-        Notify.create({
-          color: 'warning',
-          textColor: 'black',
-          message: `You left "${this.channel.id}" channel.`,
-          timeout: 3000
-        });
       }
       else if (option === 'delete') {
         this.userStore.deleteChannel(this.channel.id);
-        Notify.create({
-          color: 'negative',
-          message: `Channel "${this.channel.id}" was deleted.`,
-          timeout: 3000
-        });
       }
     }
   }
