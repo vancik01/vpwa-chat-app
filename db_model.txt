@@ -34,7 +34,7 @@ Enum channeltype {
 
 Table message {
   id integer [primary key]
-  author_id integer
+  sender_id integer
   channel_id integer
   message_content string
   sent_at timestamp
@@ -55,7 +55,7 @@ Table user_channels {
 }
 
 
-ref: user.id < message.author_id
+ref: user.id < message.sender_id
 ref: user.id < channel.admin_id
 ref: user.id < user_channels.user_id
 ref: channel.id < user_channels.channel_id
