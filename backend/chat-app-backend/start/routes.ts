@@ -24,6 +24,9 @@ router.delete('/logout', [AuthController, 'logout']).as('auth.logout').use(middl
 
 router.get('/user', [AuthController, 'userData']).as('auth.user').use(middleware.auth())
 
+// Get all channels
 router.get('/channels', [ChannelsController, 'index']).use(middleware.auth())
+// Create channel
 router.post('/channels', [ChannelsController, 'store']).use(middleware.auth())
+// Get Channel details (incliding members and messages)
 router.get('/channels/:channelId', [ChannelsController, 'show']).use(middleware.auth())

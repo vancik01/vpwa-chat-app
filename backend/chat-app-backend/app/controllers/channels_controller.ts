@@ -29,11 +29,27 @@ export default class ChannelsController {
     response.send(reuturnObj)
   }
 
-  async show({ params, request, response }: HttpContext) {
-    console.log('called')
+  async show({ params, response, auth }: HttpContext) {
+    // TODO: Add messages to return object
+
+    const { channelId } = params
+    const user = auth.getUserOrFail()
+    const channelExists = await Channel.query()
+      .where('id', channelId)
+      .whereHas('members', (memberQuery) => {
+        memberQuery.where('user_id', user.id).where('is_banned', false)
+      })
+      .preload('members', (membersQuery) => {
+        membersQuery
+          .where('pending_invite', false)
+          .where('is_banned', false)
+          .select('nickname', 'first_name', 'last_name', 'status')
+      })
+      .firstOrFail()
+
+    response.send(channelExists)
   }
 
-  // create channel
   async store({ request, response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
 
