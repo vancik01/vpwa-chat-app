@@ -36,6 +36,7 @@
     "@adonisjs/eslint-config": "^2.0.0-beta.6",
     "@adonisjs/prettier-config": "^1.4.0",
     "@adonisjs/tsconfig": "^1.4.0",
+    "@faker-js/faker": "^9.2.0",
     "@japa/api-client": "^2.0.3",
     "@japa/assert": "^3.0.0",
     "@japa/plugin-adonisjs": "^3.0.1",
@@ -56,6 +57,7 @@
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.3.0",
     "@vinejs/vine": "^2.1.0",
+    "faker": "^6.6.6",
     "luxon": "^3.5.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2"
