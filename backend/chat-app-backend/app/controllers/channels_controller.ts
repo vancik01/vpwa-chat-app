@@ -30,8 +30,6 @@ export default class ChannelsController {
   }
 
   async show({ params, response, auth }: HttpContext) {
-    // TODO: Add messages to return object
-
     const { channelId } = params
     const user = auth.getUserOrFail()
     const channelExists = await Channel.query()
@@ -44,6 +42,12 @@ export default class ChannelsController {
           .where('pending_invite', false)
           .where('is_banned', false)
           .select('nickname', 'first_name', 'last_name', 'status')
+      })
+      .preload('messages', (messagesQuery) => {
+        messagesQuery
+          .orderBy('created_at')
+          .limit(10)
+          .select('message_content', 'sender_id', 'created_at')
       })
       .firstOrFail()
 
@@ -69,11 +73,15 @@ export default class ChannelsController {
     response.send(channel.$attributes)
   }
 
-  async update({ params, request, response }: HttpContext) {
-    console.log('called')
+  async joinChannel({ params, request, response, auth }: HttpContext) {
+    console.log('join channel', auth)
   }
 
-  async destroy({ params, request, response }: HttpContext) {
-    console.log('called')
+  async leaveChannel({ params, request, response, auth }: HttpContext) {
+    console.log('join channel', auth)
+  }
+
+  async joinChannel({ params, request, response, auth }: HttpContext) {
+    console.log('join channel', auth)
   }
 }

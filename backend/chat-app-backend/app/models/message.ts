@@ -1,5 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasOne } from '@adonisjs/lucid/orm'
+import Channel from './channel.js'
+import type { HasOne } from '@adonisjs/lucid/types/relations'
+import User from './user.js'
 
 const MessageType = {
   SYSTEM: 'system',
@@ -11,7 +14,7 @@ export default class Message extends BaseModel {
   declare id: number
 
   @column()
-  declare authorId: number
+  declare senderId: number
 
   @column()
   declare channelId: number
@@ -22,7 +25,9 @@ export default class Message extends BaseModel {
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
-  static get MessageType() {
-    return MessageType
-  }
+  @hasOne(() => Channel, { localKey: 'channelId', foreignKey: 'id' })
+  public channel: HasOne<typeof Channel>
+
+  @hasOne(() => User, { localKey: 'senderId', foreignKey: 'id' })
+  public sender: HasOne<typeof User>
 }

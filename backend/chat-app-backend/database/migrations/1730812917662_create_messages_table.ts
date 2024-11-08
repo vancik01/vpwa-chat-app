@@ -6,8 +6,8 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.string('message_content').notNullable()
-      table.enum('type', ['system', 'message']).notNullable()
+      table.text('message_content').notNullable()
+      table.enum('type', ['system', 'message']).notNullable().defaultTo('message')
 
       table.timestamp('created_at')
     })
