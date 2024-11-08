@@ -59,6 +59,7 @@
     "@vinejs/vine": "^2.1.0",
     "faker": "^6.6.6",
     "luxon": "^3.5.0",
+    "moment": "^2.30.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2"
   },

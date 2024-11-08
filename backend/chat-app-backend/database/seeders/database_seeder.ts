@@ -1,7 +1,10 @@
 import Channel from '#models/channel'
+import Message from '#models/message'
 import User from '#models/user'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { faker } from '@faker-js/faker'
+import { DateTime } from 'luxon'
+import moment from 'moment'
 
 export default class extends BaseSeeder {
   async run() {
@@ -39,6 +42,12 @@ export default class extends BaseSeeder {
           name: faker.company.buzzNoun(),
         })
 
+        channel.related('members').attach({
+          [user.id]: {
+            pending_invite: false,
+          },
+        })
+
         // Generate random member data and create members for the channel
         const membersData = Array.from({ length: faker.number.int({ min: 1, max: 5 }) }).map(() => {
           const firstName = faker.person.firstName()
@@ -52,9 +61,28 @@ export default class extends BaseSeeder {
             password: 'password',
           }
         })
-
+        var currentDate = moment()
         // Use createMany to insert all members at once
-        await channel.related('members').createMany(membersData)
+        const members = await channel.related('members').createMany(
+          membersData,
+          membersData.map(() => ({ pending_invite: false }))
+        )
+        for (let j = 0; j < 100; j++) {
+          var mention = '@' + faker.helpers.arrayElement(members).$getAttribute('nickname') + ' '
+          var randomMinutes = faker.number.int({ min: 1, max: 10000 })
+          const createdAt = currentDate.subtract(randomMinutes, 'seconds')
+          currentDate = createdAt
+          var messageContent =
+            `${faker.datatype.boolean() ? mention : ''}` +
+            faker.lorem.paragraphs(faker.number.int({ min: 1, max: 10 }))
+
+          await Message.create({
+            channelId: channel.id,
+            messageContent: messageContent,
+            senderId: faker.helpers.arrayElement(members).id,
+            createdAt: DateTime.fromJSDate(createdAt.toDate()),
+          })
+        }
       }
     }
   }

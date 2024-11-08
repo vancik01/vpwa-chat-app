@@ -12,12 +12,6 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 const ChannelsController = () => import('#controllers/channels_controller')
 
-router.get('/', async () => {
-  return {
-    hello: 'world',
-  }
-})
-
 router.post('/register', [AuthController, 'register']).as('auth.register')
 router.post('/login', [AuthController, 'login']).as('auth.login')
 router.delete('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
