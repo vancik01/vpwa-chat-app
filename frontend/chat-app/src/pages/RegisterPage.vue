@@ -61,7 +61,6 @@ export default {
           password: this.password,
         };
         useUserStore().createAccount(accountProps)
-        this.$router.push('/');
       }
     }
   }

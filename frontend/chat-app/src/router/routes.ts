@@ -3,6 +3,8 @@ import { RouteRecordRaw } from 'vue-router';
 const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
+		name: 'home',
+		meta: { requiresAuth: true },
 		component: () => import('layouts/MainLayout.vue'),
 		children: [{ path: '/channel/:id', component: () => import('pages/ChannelPage.vue') }],
 	},
@@ -11,14 +13,8 @@ const routes: RouteRecordRaw[] = [
 		path: '/auth',
 		component: ()=>import('layouts/AuthLayout.vue'),
 		children: [
-			{
-				path: 'login',
-				component: () => import('pages/LoginPage.vue'),
-			},
-			{
-				path: 'register',
-				component: () => import('pages/RegisterPage.vue'),
-			},
+			{ path: 'register', name: 'register', meta: { guestOnly: true }, component: () => import('pages/RegisterPage.vue') },
+      		{ path: 'login', name: 'login', meta: { guestOnly: true }, component: () => import('pages/LoginPage.vue') }
 		],
 	},
   

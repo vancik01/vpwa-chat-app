@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { Channel, User, UserCreateAccountProps, UserStatus, ChannelType } from 'src/components/models'
 import { channelNameRegex } from 'src/utils/regex'
 import { Notify } from 'quasar';
+import { authService, authManager } from 'src/services'
 
 interface UserState {
   user: User | null,
@@ -12,7 +13,7 @@ interface UserState {
 export const useUserStore = defineStore<'userStore', UserState, {
   is_logged_in: () => boolean
   	}, {
-  login: (email: string, password: string) => { success?: string; error?: string }
+  login: (email: string, password: string) => void
   logout: () => void
   createAccount: (createAccountProps:UserCreateAccountProps) => void
   setStatus: (status: UserStatus) => void,
@@ -25,15 +26,11 @@ export const useUserStore = defineStore<'userStore', UserState, {
   acceptInvitation: (channelId: string) => void,
   rejectInvitation: (channelId: string) => void,
   isAdmin:(channelId: string) => boolean,
-  createChannel(channelId: string, isPrivate: boolean, usernames: string | undefined): boolean
+  createChannel(channelId: string, isPrivate: boolean, usernames: string | undefined): boolean,
+  checkAuth: () => Promise<boolean>
 }>('userStore', {
   		state: (): UserState => ({
-  			user: {
-  				nickname: 'user_123',
-  				display_name: 'Display Name',
-  				token: 'token_123',
-  				status: 'online',
-  			},
+  			user: null,
   			channels:[
           {
             id:'channel_name_123_456_789',
@@ -96,7 +93,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             channel_members: [],
             is_someone_typing: false,
             user_typing: null,
-            admin_id: 'user_123'
+            admin_id: ''
           }          
   			],
         
@@ -126,48 +123,83 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			}
   		},
   		actions: {
-  			login(email, password) {
-  				console.log(email, password)
-          
-          //dummy data
-          const knownUserEmail = 'user_123@email.com';
-          const knownUserPassword = 'password';
+  			async login(email, password) {
+          try {
+            const credentials = { email, password };
+            const token = await authService.login(credentials);
+            
+            authManager.setToken(token.token);
+        
+            const user = await authService.me();
+            if (user) {
+              this.user = {
+                nickname: user.nickname,
+                display_name: `${user.firstName} ${user.lastName}`,
+                token: token.token,
+                status: 'online',
+              };
 
-          if (email !== knownUserEmail) {
-            return { error: 'User not found' };
+              this.router.push('/')
+              
+              Notify.create({
+                type: 'positive',
+                message: 'Login successful!',
+                timeout: 3000,
+              });
+              
+              return { success: 'Login successful!' };
+            }
+          } catch (error) {
+            Notify.create({
+              type: 'negative',
+              message: 'Login failed!',
+              timeout: 3000,
+            });
+            return { error: 'Login failed!' };
           }
-    
-          else if (password !== knownUserPassword) {
-            return { error: 'Incorrect password!' };
-          }
+        },
 
-  				this.user = {
-  					display_name:'Display name',
-  					nickname: 'user_123',
-  					token:'example_token_123',
-  					status: 'online'
-  				}
-          return { success: 'Login successful!' };
+  			async logout() {
+          try {
+            await authService.logout()
+            authManager.removeToken() 
+            this.user = null
+            this.router.push('/auth/login')
+      
+            Notify.create({
+              type: 'warning',
+              message: 'Logged out successfully.',
+              timeout: 3000
+            })
+          } catch (error) {
+            console.error('Logout failed:', error)
+          }
   			},
-  			logout() {
-          this.router.push('/auth/login')
-          this.user = null
+        
+  			async createAccount(createAccountProps) {
+  				try {
+            const user = await authService.register(createAccountProps)
+            
+            this.user = {
+              display_name: `${user.firstName} ${user.lastName}`,
+              nickname: user.nickname,
+              token: authManager.getToken(),
+              status: 'online'
+            }
+            this.router.push('/')
+            
+            Notify.create({
+              type: 'positive',
+              message: 'Registration successful!',
+              timeout: 3000
+            })
+      
+            return { success: 'Registration successful!' }
+          } catch (error) {
+            return { error: 'Registration failed!' }
+          }
   			},
-  			createAccount(createAccountProps) {
-  				console.log(createAccountProps)
-          Notify.create({
-            type: 'positive',
-            message: 'Registration successful!',
-            timeout: 3000
-          });
-          this.user = {
-  					display_name:'Display name',
-  					nickname: 'user_123',
-  					token:'example_token_123',
-  					status: 'online'
-  				}
-          
-  			},
+
   			setStatus(status: UserStatus) {
   				if(this.user) {
   					this.user.status = status
@@ -296,6 +328,26 @@ export const useUserStore = defineStore<'userStore', UserState, {
             timeout: 3000
           });
           return true;
-        }
+        },
+
+        async checkAuth() {
+          const token = authManager.getToken()
+          if (token) {
+            const user = await authService.me()
+            if (user) {
+              this.user = {
+                nickname: user.nickname,
+                display_name: `${user.firstName} ${user.lastName}`,
+                token: token,
+                status: 'online',
+              }
+              return true
+            } else {
+              return false
+              authManager.removeToken()
+            }
+          }
+          return false
+        },
   		}
   	})

@@ -1,7 +1,7 @@
 export type User = {
   nickname: string,
   display_name: string,
-  token: string,
+  token: string | null,
   status: UserStatus
 }
 
