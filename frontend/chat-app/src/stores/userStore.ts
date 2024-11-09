@@ -181,11 +181,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
             const res = await authService.register(createAccountProps)
             if(res.status === 200){
               const user = res.data
-            
+              const token = res.data.token
+              authManager.setToken(token)
+
             this.user = {
               display_name: `${user.firstName} ${user.lastName}`,
               nickname: user.nickname,
-              token: authManager.getToken(),
+              token: token,
               status: 'online'
             }
             this.router.push('/')
