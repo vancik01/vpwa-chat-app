@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { Channel, User, UserCreateAccountProps, UserStatus, ApiChannelsList } from 'src/components/models'
 import { Notify } from 'quasar';
-import { authService, authManager } from 'src/services'
-import { api } from 'src/boot/axios';
+import { authService, authManager, channelService } from 'src/services'
+import { api } from 'src/boot/axios'
+import { useChannelStore } from 'src/stores/channelStore'
 
 interface UserState {
   loading: boolean,
@@ -54,6 +55,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             const user = await authService.me();
             if (user) {
               this.user = {
+                id: user.id,
                 nickname: user.nickname,
                 display_name: `${user.firstName} ${user.lastName}`,
                 token: token.token,
@@ -106,6 +108,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
               authManager.setToken(token)
 
             this.user = {
+              id: user.id,
               display_name: `${user.firstName} ${user.lastName}`,
               nickname: user.nickname,
               token: token,
@@ -156,21 +159,46 @@ export const useUserStore = defineStore<'userStore', UserState, {
             return true
           }
   			},
-  			leaveChannel(channelId) {
-          const channelIndex = this.channels.findIndex(channel => channel.id === channelId);
-          if (channelIndex !== -1) {
-            this.channels.splice(channelIndex, 1);
+  			async leaveChannel(channelId) {
+          if (!this.user?.id) {
+            return;
           }
-          this.router.push('/')
-
-          Notify.create({
-              color: 'warning',
-              textColor: 'black',
-              message: `You left "${channelId}" channel.`,
+          try {
+            await channelService.leaveChannel(channelId, this.user.id)
+            const channelStore = useChannelStore()
+            if (channelStore.current_channel?.id === channelId) {
+              this.router.push('/')
+            }
+            const channel = this.channels.find(channel => channel.id === channelId)
+            const isAdmin = channel?.is_admin
+            const channelIndex = this.channels.findIndex(channel => channel.id === channelId);
+            if (channelIndex !== -1) {
+              this.channels.splice(channelIndex, 1);
+            }
+            if (isAdmin) {
+              Notify.create({
+                color: 'negative',
+                message: `Channel "${channelId}" was deleted.`,
+                timeout: 3000,
+                position: 'top-right'
+              })
+            }
+            Notify.create({
+                color: 'warning',
+                textColor: 'black',
+                message: `You left "${channelId}" channel`,
+                timeout: 3000,
+                position: 'top-right'
+            })
+          }
+          catch (error) {
+            Notify.create({
+              type: 'negative',
+              message: `Failed to leave "${channelId}" channel`,
               timeout: 3000,
               position: 'top-right'
-          });
-          console.log('leave', channelId)
+            })
+          }
   			},
   			joinChannel(channelId) {
   				console.log(channelId)
@@ -185,18 +213,38 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			revokeInvitation(channelId) {
   				console.log(channelId)
   			},
-  			deleteChannel(channelId) {
+  			async deleteChannel(channelId) {
+          if (!this.user?.id) {
+            return;
+          }
   				const channel = this.channels.find(channel => channel.id === channelId);
           if (!channel?.is_admin) {
             return;
           }
-          Notify.create({
-            color: 'negative',
-            message: `Channel "${channelId}" was deleted.`,
-            timeout: 3000,
-            position: 'top-right'
-          });
-          this.leaveChannel(channelId);
+          try {
+            await channelService.leaveChannel(channelId, this.user.id)
+            const channelStore = useChannelStore()
+            if (channelStore.current_channel?.id === channelId) {
+              this.router.push('/')
+            }
+            const channelIndex = this.channels.findIndex(channel => channel.id === channelId);
+            if (channelIndex !== -1) {
+              this.channels.splice(channelIndex, 1);
+            }
+            Notify.create({
+              color: 'negative',
+              message: `Channel "${channelId}" was deleted.`,
+              timeout: 3000,
+              position: 'top-right'
+            });
+          } catch (error){
+            Notify.create({
+              type: 'negative',
+              message: `Failed to leave "${channelId}" channel`,
+              timeout: 3000,
+              position: 'top-right'
+            })
+          }
 
   			},
   			viewedMessageInChannel(channelId) {
@@ -274,6 +322,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             const user = await authService.me()
             if (user) {
               this.user = {
+                id: user.id,
                 nickname: user.nickname,
                 display_name: `${user.firstName} ${user.lastName}`,
                 token: token,

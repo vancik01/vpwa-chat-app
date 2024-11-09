@@ -64,8 +64,11 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  const nickName = commandMatch[1];
 				  userStore.revokeInvitation(this.current_channel?.id as string, nickName)
 			  
-				} else if ((commandMatch = messageContent.match(cancelRegex)) || (commandMatch = messageContent.match(quitlRegex))) {
+				} else if (commandMatch = messageContent.match(cancelRegex)) {
 					userStore.leaveChannel(this.current_channel?.id as string)
+					
+				} else if (commandMatch = messageContent.match(quitlRegex)) {
+					userStore.deleteChannel(this.current_channel?.id as string)
 				
 				} else if ((commandMatch = messageContent.match(listRegex))) {
 					

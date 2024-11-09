@@ -112,9 +112,36 @@ export default class ChannelsController {
   //   console.log('join channel', auth)
   // }
 
-  // async leaveChannel({ params, request, response, auth }: HttpContext) {
-  //   console.log('join channel', auth)
-  // }
+  async leaveChannel({ params, request, response, auth }: HttpContext) {
+
+    const user = await auth.getUserOrFail();
+    const { channelId } = params;
+    const { userId } = request.body();
+
+    const channel = await Channel.query()
+      .where('id', channelId)
+      .whereHas('members', (memberQuery) => memberQuery.where('user_id', userId))
+      .first();
+
+    if (!channel) {
+      return response.notFound({ message: 'User is not a member of this channel.' });
+    }
+
+    await channel.related('members').detach([userId]);
+
+    if (channel.adminId === userId) {
+      await deleteChannel(channelId);
+    }
+
+    response.send({ message: 'User has left the channel.' });
+  }
 
   // ...
+}
+
+async function deleteChannel(channelId: string): Promise<void> {
+  const channel = await Channel.findOrFail(channelId)
+  await channel.related('members').detach()
+  await channel.related('messages').query().delete()
+  await channel.delete()
 }
