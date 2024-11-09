@@ -17,6 +17,7 @@ export type UserStatus = 'online' | 'dnd' | 'offline'
 
 export type ChannelMember = {
   display_name: string,
+  id: number,
   nickname: string,
   status: UserStatus
 }
@@ -27,10 +28,18 @@ export type Channel = {
   id:string,
   type: ChannelType,
   has_new_messages: number,
-  channel_members: ChannelMember[],
   is_someone_typing: boolean,
   user_typing: ChannelMember | null,
-  admin_id: User['nickname']
+  is_admin: boolean
+  // ...
+}
+
+export type ChannelDetail = {
+  id:string,
+  type: ChannelType,
+  is_someone_typing: boolean,
+  user_typing: ChannelMember | null,
+  is_admin: boolean,
   // ...
 }
 
@@ -39,8 +48,8 @@ export type SystemMessageType = 'list' | 'invite';
 
 export type TextMessage = {
     type: 'message';
-    message_content: string;
-    from: ChannelMember;
+    messageContent: string;
+    from: ChannelMember | null;
     sent_at: string;
 };
 
@@ -53,3 +62,25 @@ export type SystemMessage = {
 };
 
 export type Message = TextMessage | SystemMessage;
+
+// Api
+export type ApiChannelsList = {
+  id: string
+  channelType: 'public' | 'private'
+  pendingInvite: boolean
+  isAdmin: boolean
+}
+
+export type ApiChannelDetail = {
+  id: string,
+  channelType: 'public' | 'private',
+  is_admin: boolean,
+  members: ChannelMember[]
+}
+
+export type ApiMessage = {
+  messageContent: string,
+  senderId: number,
+  channelId: string,
+  createdAt: string
+}

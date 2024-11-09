@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { Channel, User, UserCreateAccountProps, UserStatus, ChannelType } from 'src/components/models'
-import { channelNameRegex } from 'src/utils/regex'
+import { Channel, User, UserCreateAccountProps, UserStatus, ApiChannelsList } from 'src/components/models'
 import { Notify } from 'quasar';
 import { authService, authManager } from 'src/services'
+import { api } from 'src/boot/axios';
 
 interface UserState {
+  loading: boolean,
   user: User | null,
   channels: Channel[],
   invitations: Channel[]
@@ -16,6 +17,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   login: (email: string, password: string) => void
   logout: () => void
   createAccount: (createAccountProps:UserCreateAccountProps) => void
+  initializeChatApp: () => void,
   setStatus: (status: UserStatus) => void,
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
@@ -26,96 +28,15 @@ export const useUserStore = defineStore<'userStore', UserState, {
   acceptInvitation: (channelId: string) => void,
   rejectInvitation: (channelId: string) => void,
   isAdmin:(channelId: string) => boolean,
-  createChannel(channelId: string, isPrivate: boolean, usernames: string | undefined): boolean,
+  createChannel(channelName: string, isPrivate: boolean, usernames: string | undefined): boolean,
   checkAuth: () => Promise<boolean>
 }>('userStore', {
   		state: (): UserState => ({
+        loading: false,
   			user: null,
-  			channels:[
-          {
-            id:'channel_name_123_456_789',
-            has_new_messages: 128,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id:'very_long_channel_name_without_new_messages',
-            has_new_messages: 0,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id:'very_long_channel_name_with_new_messages',
-            has_new_messages: 23,
-            type: 'private',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id:'channel_1',
-            has_new_messages: 0,
-            type: 'private',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id:'channel_2',
-            has_new_messages: 0,
-            type: 'private',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id: 'channel_3',
-            has_new_messages: 0,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id: 'channel_and_user_123_is_admin',
-            has_new_messages: 0,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          }          
+  			channels:[      
   			],
-        
-        invitations: [
-          { id: 'channel_invite_1',
-            has_new_messages: 0,
-            type: 'public',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          },
-          {
-            id: 'channel_invite_2',
-            has_new_messages: 0,
-            type: 'private',
-            channel_members: [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: ''
-          }
-        ]
+        invitations: []
   		}),
   		getters: {
   			is_logged_in (){
@@ -204,7 +125,20 @@ export const useUserStore = defineStore<'userStore', UserState, {
             })
           }
   			},
-
+        async initializeChatApp(){
+          this.loading = true
+          const res = await api.get('/channels')
+          const data: ApiChannelsList[] = res.data;
+          this.channels = data.map((channel:ApiChannelsList) => ({
+            has_new_messages: 0,
+            id: channel.id,
+            is_admin: channel.isAdmin,
+            is_someone_typing: false,
+            user_typing: null,
+            type: channel.channelType
+          }))
+          this.loading = false
+        },
   			setStatus(status: UserStatus) {
   				if(this.user) {
   					this.user.status = status
@@ -238,22 +172,20 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
   			joinChannel(channelId) {
   				console.log(channelId)
-          this.channels.push({
-            channel_members: [],
-            has_new_messages: 0,
-            id: channelId,
-            is_someone_typing: false,
-            type: 'private',
-            user_typing: null,
-            admin_id: ''
-          })
+          // this.channels.push({
+          //   has_new_messages: 0,
+          //   id: channelId,
+          //   is_someone_typing: false,
+          //   type: 'private',
+          //   user_typing: null,
+          // })
   			},
   			revokeInvitation(channelId) {
   				console.log(channelId)
   			},
   			deleteChannel(channelId) {
   				const channel = this.channels.find(channel => channel.id === channelId);
-          if (channel?.admin_id !== this.user?.nickname) {
+          if (!channel?.is_admin) {
             return;
           }
           Notify.create({
@@ -287,52 +219,51 @@ export const useUserStore = defineStore<'userStore', UserState, {
         },
         isAdmin(channelId) {
           const channel = this.channels.find(channel => channel.id === channelId);
-          if (channel && channel.admin_id === this.user?.nickname) {
-            return true
-          }
-          else {return false}
+          return channel?.is_admin || false
         },
-        createChannel(channelId, isPrivate, usernames) {
+        createChannel(channelName, isPrivate, usernames) {
+          console.log(channelName, isPrivate, usernames)
+          return true
 
-          if (!channelNameRegex.test(channelId)) {
-            return false;
-          }
+          // if (!channelNameRegex.test(channelName)) {
+          //   return false;
+          // }
 
-          const channelExists = this.channels.some(channel => channel.id === channelId);
-          if (channelExists) {
-            return false;
-          }
+          // const channelExists = this.channels.some(channel => channel.id === channelId);
+          // if (channelExists) {
+          //   return false;
+          // }
           
-          const usernamesArray = usernames
-          ? usernames
-              .split(',')
-              .map(username => username.trim())
-              .filter(username => username) 
-          : [];
-          console.log(usernamesArray);
+          // const usernamesArray = usernames
+          // ? usernames
+          //     .split(',')
+          //     .map(username => username.trim())
+          //     .filter(username => username) 
+          // : [];
+          // console.log(usernamesArray);
           
-          const newChannel = {
-            id: channelId,
-            has_new_messages: 0,
-            type: isPrivate ? 'private' : 'public' as ChannelType,
-            channel_members: this.user ? [{
-              display_name: this.user.nickname,
-              nickname: this.user.nickname,
-              status: this.user.status,
-          }] : [],
-            is_someone_typing: false,
-            user_typing: null,
-            admin_id: this.user?.nickname || '',
-          };
-          console.log(newChannel.channel_members)
+          // const newChannel = {
+          //   id: channelId,
+          //   has_new_messages: 0,
+          //   type: isPrivate ? 'private' : 'public' as ChannelType,
+          //   channel_members: this.user ? [{
+          //     display_name: this.user.nickname,
+          //     nickname: this.user.nickname,
+          //     status: this.user.status,
+          // }] : [],
+          //   is_someone_typing: false,
+          //   user_typing: null,
+          //   admin_id: this.user?.nickname || '',
+          // };
+          // console.log(newChannel.channel_members)
         
-          this.channels.unshift(newChannel);
-          Notify.create({
-            type: 'positive',
-            message: `Channel "${channelId}" was successfully created!`,
-            timeout: 3000
-          });
-          return true;
+          // this.channels.unshift(newChannel);
+          // Notify.create({
+          //   type: 'positive',
+          //   message: `Channel "${channelId}" was successfully created!`,
+          //   timeout: 3000
+          // });
+          // return true;
         },
 
         async checkAuth() {

@@ -8,7 +8,7 @@
           {{ channelStore.current_channel?.type }}
         </div>
         <div class="channel-messages">
-          <div v-if="channelStore.page === 0 && channelStore.is_loading" class="init-loading">
+          <div v-if="channelStore.page === 1 && channelStore.is_loading" class="init-loading">
             <q-spinner-tail
               color="primary"
               size="2em"
@@ -27,7 +27,7 @@
                   <SystemMessage
                     v-if="item.type === 'system'"
                     :commandType="item.command_type"
-                    :users="channelStore.current_channel?.channel_members"
+                    :users="channelStore.members"
                     :invitedUser="item.invited_user"/>
                 </template>
                 <template v-slot:loading>
@@ -62,15 +62,25 @@ defineOptions({
 });
 
 async function onLoadNew(index: number, done: VoidFunction) {
+  if(channelStore.is_last_page){ 
+    done()
+    return
+  }
+
   channelStore.page = index;
   channelStore.is_loading = true;
   const newMessages = await channelStore.loadMessages(index);
-  channelStore.messages.unshift(...newMessages);
+  console.log('Len', newMessages.length)
+  if(newMessages.length === 0){
+    channelStore.is_last_page = true
+  } else {
+    channelStore.messages.unshift(...newMessages);
+  }
   channelStore.is_loading = false;
   done();
 }
 
-onMounted(() => {
+onMounted(async () => {
   if(route.params.id){
     channelStore.setCurrentChannel(route.params.id as string)
   }
@@ -88,7 +98,6 @@ channelStore.$onAction(({ name, after }) => {
       if (name === 'postMessage') {
         after(() => {
           // Scroll to bottom after a new message is added
-          console.log('Wocap')
           scrollToBottom();
         });
       }

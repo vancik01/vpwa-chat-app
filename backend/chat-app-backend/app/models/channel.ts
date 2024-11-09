@@ -6,10 +6,7 @@ import Message from './message.js'
 
 export default class Channel extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
-
-  @column()
-  declare name: string
+  declare id: string
 
   @column()
   declare channelType: string // Store as a string to hold 'private' or 'public'

@@ -33,7 +33,7 @@ api.interceptors.request.use(
     }
 
     if (DEBUG) {
-      console.info('-> ', config)
+      console.info('-> ', config.url, config)
     }
 
     return config

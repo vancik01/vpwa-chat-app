@@ -9,11 +9,11 @@
             </div>
             <div class="message-content">
                 <div class="message-meta">
-                    <div class="message-user-name">{{message.type == "message" ? message.from.display_name : "Bot"}}</div>
-                    <div class="message-time">{{message.sent_at}}</div>
+                    <div class="message-user-name">{{message.type == "message" ? message.from?.display_name : "Bot"}}</div>
+                    <div class="message-time">{{moment(message.sent_at).toLocaleString()}}</div>
                 </div>
                 <p>
-                    <template v-for="(content, index) in parseMessageContent(props.message.message_content)" :key="index">
+                    <template v-for="(content, index) in parseMessageContent(props.message.messageContent)" :key="index">
                         <component v-if="typeof content === 'object'" :is="content" />
                         <span v-else v-html="content"></span>
                     </template>
@@ -30,6 +30,7 @@ import { Message } from './models';
 import StatusDot from './StatusDot.vue';
 import MessageMention from './MessageMention.vue';
 import { useUserStore } from 'src/stores/userStore';
+import moment from 'moment'
 
 const userStore = useUserStore()
 const props = defineProps<{

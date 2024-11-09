@@ -37,9 +37,9 @@ export default class extends BaseSeeder {
       // Create channels for each user sequentially
       for (let i = 0; i < 5; i++) {
         const channel = await Channel.create({
+          id: `${faker.company.buzzNoun().toLowerCase()}_${faker.number.int({ min: 1, max: 100 })}`,
           channelType: faker.helpers.arrayElement(['private', 'public']),
           adminId: user.id,
-          name: faker.company.buzzNoun(),
         })
 
         channel.related('members').attach({

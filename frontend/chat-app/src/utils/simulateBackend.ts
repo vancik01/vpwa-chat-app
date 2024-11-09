@@ -11,8 +11,9 @@ export function fetchMessages() {
   
     const object:Message = {
       type: 'message',
-      message_content: faker.lorem.paragraph(),
+      messageContent: faker.lorem.paragraph(),
       from: {
+        id: 1,
         display_name: faker.person.fullName(),
         nickname: faker.internet.userName(),
         status: faker.helpers.arrayElement(['online', 'offline', 'dnd']),

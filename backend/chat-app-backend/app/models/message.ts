@@ -4,11 +4,6 @@ import Channel from './channel.js'
 import type { HasOne } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
 
-const MessageType = {
-  SYSTEM: 'system',
-  MESSAGE: 'message',
-}
-
 export default class Message extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -17,7 +12,7 @@ export default class Message extends BaseModel {
   declare senderId: number
 
   @column()
-  declare channelId: number
+  declare channelId: string
 
   @column()
   declare messageContent: string

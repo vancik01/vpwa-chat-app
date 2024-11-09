@@ -8,7 +8,7 @@ export default class extends BaseSchema {
     this.schema.alterTable('messages', (table) => {
       table.integer('sender_id').unsigned().notNullable().references('users.id').onDelete('CASCADE')
       table
-        .integer('channel_id')
+        .string('channel_id')
         .unsigned()
         .notNullable()
         .references('channels.id')

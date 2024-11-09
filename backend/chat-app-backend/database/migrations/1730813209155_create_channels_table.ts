@@ -5,8 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-      table.string('name').notNullable()
+      table.string('id').primary()
       table.enum('channel_type', ['private', 'public'])
 
       table.timestamp('created_at')

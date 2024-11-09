@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.integer('user_id').unsigned().references('users.id')
-      table.integer('channel_id').unsigned().references('channels.id')
+      table.string('channel_id').unsigned().references('channels.id')
       table.boolean('pending_invite').defaultTo(true)
       table.boolean('is_banned').defaultTo(false)
       table.integer('kick_count').defaultTo(0)

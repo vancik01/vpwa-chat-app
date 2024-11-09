@@ -9,7 +9,7 @@
 
     <DrawerLayout :leftDrawerOpen="leftDrawerOpen" @update:leftDrawerOpen="leftDrawerOpen = $event" />
 
-    <q-page-container>
+    <q-page-container v-if="!userStore.loading">
       <q-page>
         <router-view />
         <q-footer class="text-black bg-white">
@@ -27,13 +27,18 @@ import DrawerLayout from 'src/components/DrawerLayout.vue';
 import { useUserStore } from 'src/stores/userStore';
 import { ref } from 'vue'
 // eslint-disable-next-line no-use-before-define
-
+const userStore = useUserStore()
 export default {
   components: {
     DrawerLayout,
     CommandLine
   },
-  
+
+  created(){
+    console.log('initializing app')
+    userStore.initializeChatApp()
+
+  },
   setup () {
     const leftDrawerOpen = ref(false)
     const userStore = useUserStore();

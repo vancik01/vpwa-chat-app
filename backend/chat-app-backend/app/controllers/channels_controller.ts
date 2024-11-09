@@ -2,6 +2,10 @@ import Channel from '#models/channel'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class ChannelsController {
+  isChannelIdValid(input: string): boolean {
+    const regex = /^[A-Z0-9_]+$/
+    return regex.test(input)
+  }
   // get all channels, where the user is member
   async index({ response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
@@ -10,7 +14,7 @@ export default class ChannelsController {
       .whereHas('members', (memberQuery) => {
         memberQuery.where('user_id', user.id).where('is_banned', false)
       })
-      .select('id', 'name', 'channel_type', 'adminId')
+      .select('id', 'channel_type', 'adminId')
       .preload('members', (q) => {
         q.pivotColumns(['pending_invite'])
         q.where('user_id', user.id)
@@ -19,7 +23,6 @@ export default class ChannelsController {
     var reuturnObj = channels.map((channel) => {
       var tmp = {
         id: channel.id,
-        name: channel.name,
         channelType: channel.channelType,
         pendingInvite: channel.members[0].$extras.pivot_pending_invite,
         isAdmin: channel.adminId === user.id,
@@ -32,8 +35,9 @@ export default class ChannelsController {
   async show({ params, response, auth }: HttpContext) {
     const { channelId } = params
     const user = auth.getUserOrFail()
-    const channelExists = await Channel.query()
+    const channel = await Channel.query()
       .where('id', channelId)
+      .select(['id', 'channel_type', 'admin_id'])
       .whereHas('members', (memberQuery) => {
         memberQuery.where('user_id', user.id).where('is_banned', false)
       })
@@ -43,45 +47,74 @@ export default class ChannelsController {
           .where('is_banned', false)
           .select('nickname', 'first_name', 'last_name', 'status')
       })
-      .preload('messages', (messagesQuery) => {
-        messagesQuery
-          .orderBy('created_at')
-          .limit(10)
-          .select('message_content', 'sender_id', 'created_at')
-      })
       .firstOrFail()
 
-    response.send(channelExists)
+    response.send({
+      id: channel.id,
+      channel_type: channel.$attributes.channelType,
+      is_admin: channel.$attributes.adminId === user.id,
+      members: channel.members.map((member) => ({
+        id: member.id,
+        status: member.status,
+        display_name: `${member.first_name} ${member.last_name}`,
+        nickname: member.nickname,
+      })),
+    })
   }
 
   async store({ request, response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
 
     const body = request.body()
-    const channel = await Channel.create({
-      adminId: auth.getUserOrFail().$attributes.id,
-      channelType: body.channelType,
-      name: body.name,
-    })
+    if (body.name && this.isChannelIdValid(body.name)) {
+      const channel = await Channel.create({
+        id: body.name,
+        adminId: auth.getUserOrFail().$attributes.id,
+        channelType: body.channelType,
+      })
 
-    channel.related('members').attach({
-      [user.id]: {
-        pending_invite: false,
-      },
-    })
+      channel.related('members').attach({
+        [user.id]: {
+          pending_invite: false,
+        },
+      })
 
-    response.send(channel.$attributes)
+      response.send(channel.$attributes)
+    }
+    response.notFound()
   }
 
-  async joinChannel({ params, request, response, auth }: HttpContext) {
-    console.log('join channel', auth)
+  async getMessages({ auth, params, response }: HttpContext) {
+    const perPage = 20
+    const { channelId, page } = params
+    const user = auth.getUserOrFail()
+
+    const channel = await Channel.query()
+      .where('id', channelId)
+      .whereHas('members', (memberQuery) => {
+        memberQuery
+          .where('user_id', user.id)
+          .where('pending_invite', false)
+          .where('is_banned', false)
+      })
+      .preload('messages', (q) => {
+        q.orderBy('createdAt', 'desc')
+          .offset((page - 1) * perPage)
+          .limit(perPage)
+          .select(['messageContent', 'senderId', 'createdAt'])
+      })
+      .firstOrFail()
+
+    response.send(channel.messages.reverse())
   }
 
-  async leaveChannel({ params, request, response, auth }: HttpContext) {
-    console.log('join channel', auth)
-  }
+  // async joinChannel({ params, request, response, auth }: HttpContext) {
+  //   console.log('join channel', auth)
+  // }
 
-  async joinChannel({ params, request, response, auth }: HttpContext) {
-    console.log('join channel', auth)
-  }
+  // async leaveChannel({ params, request, response, auth }: HttpContext) {
+  //   console.log('join channel', auth)
+  // }
+
+  // ...
 }
