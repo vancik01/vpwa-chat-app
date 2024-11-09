@@ -178,7 +178,9 @@ export const useUserStore = defineStore<'userStore', UserState, {
         
   			async createAccount(createAccountProps) {
   				try {
-            const user = await authService.register(createAccountProps)
+            const res = await authService.register(createAccountProps)
+            if(res.status === 200){
+              const user = res.data
             
             this.user = {
               display_name: `${user.firstName} ${user.lastName}`,
@@ -193,10 +195,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
               message: 'Registration successful!',
               timeout: 3000
             })
-      
-            return { success: 'Registration successful!' }
+            }
           } catch (error) {
-            return { error: 'Registration failed!' }
+            Notify.create({
+              type: 'negative',
+              message: `${error}`,
+              timeout: 3000
+            })
           }
   			},
 

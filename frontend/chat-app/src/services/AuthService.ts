@@ -1,4 +1,4 @@
-import type { AxiosError, AxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { ApiToken, LoginCredentials, RegisterData, User } from 'src/contracts'
 import { api } from 'src/boot/axios'
 
@@ -15,9 +15,9 @@ class AuthService {
       })
   }
 
-  async register (data: RegisterData): Promise<User> {
+  async register (data: RegisterData):Promise<AxiosResponse> {
     const response = await api.post<User>('/register', data)
-    return response.data
+    return response
   }
 
   async login (credentials: LoginCredentials): Promise<ApiToken> {
