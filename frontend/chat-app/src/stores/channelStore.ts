@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, ChannelMember, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
-import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex } from 'src/utils/regex'
+import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex, joinTypeRegex } from 'src/utils/regex'
 import { channelService } from 'src/services'
 import { Notify } from 'quasar';
 
@@ -43,6 +43,15 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				  const channelName = commandMatch[1];
 				  userStore.joinChannel(channelName)
 			  
+				} else if ((commandMatch = messageContent.match(joinTypeRegex))) {
+				  const channelName = commandMatch[1];
+				  const channelType = commandMatch[2];
+				  let isPrivate = false
+				  if (channelType === 'private') {
+					isPrivate = true
+				  }
+				  userStore.createChannel(channelName, isPrivate, '')
+				  
 				} else if ((commandMatch = messageContent.match(inviteRegex))) {
 				  const nickName = commandMatch[1];
 				  console.log({nickName});

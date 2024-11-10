@@ -3,9 +3,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 export default class ChannelsController {
   isChannelIdValid(input: string): boolean {
-    const regex = /^[A-Z0-9_]+$/
+    const regex = /^[a-zA-Z0-9_]+$/
     return regex.test(input)
   }
+
   // get all channels, where the user is member
   async index({ response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
@@ -64,24 +65,16 @@ export default class ChannelsController {
 
   async store({ request, response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
-
     const body = request.body()
+    const channelExists = await Channel.query().where('id', body.name).first()
+
+    if (channelExists) {
+      response.badRequest()
+    }
     if (body.name && this.isChannelIdValid(body.name)) {
-      const channel = await Channel.create({
-        id: body.name,
-        adminId: auth.getUserOrFail().$attributes.id,
-        channelType: body.channelType,
-      })
-
-      channel.related('members').attach({
-        [user.id]: {
-          pending_invite: false,
-        },
-      })
-
+      const channel = await createChannel(body.name, body.channelType, user.id)
       response.send(channel.$attributes)
     }
-    response.notFound()
   }
 
   async getMessages({ auth, params, response }: HttpContext) {
@@ -115,18 +108,8 @@ export default class ChannelsController {
     const channel = await Channel.query().where('id', channelId).first()
 
     if (!channel) {
-      // await createChannel()
-      return response.notFound({ message: 'Channel not found.' })
-    }
-
-    const isInvited = await channel.related('members')
-      .query()
-      .where('user_id', user.id)
-      .andWherePivot('pending_invite', true)
-      .first()
-
-    if (channel.channelType !== 'public' && !isInvited) {
-      return response.forbidden({ message: 'This channel is private!' })
+      const newChannel =  await createChannel(channelId, 'public', user.id)
+      return response.send({ message: `Channel ${channelId} created`})
     }
 
     const isMember = await channel.related('members')
@@ -137,6 +120,16 @@ export default class ChannelsController {
 
     if (isMember) {
       return response.badRequest({ message: `You are already a member of channel: ${channelId}` })
+    }
+
+    const isInvited = await channel.related('members')
+      .query()
+      .where('user_id', user.id)
+      .andWherePivot('pending_invite', true)
+      .first()
+
+    if (channel.channelType !== 'public' && !isInvited) {
+      return response.forbidden({ message: 'This channel is private!' })
     }
 
     await channel.related('members').attach({
@@ -160,7 +153,6 @@ export default class ChannelsController {
 
     if (!channel) {
       return response.notFound({ message: 'User is not a member of this channel.' })
-      return response.notFound({ message: 'User is not a member of this channel.' })
     }
 
     await channel.related('members').detach([user.id])
@@ -180,4 +172,19 @@ async function deleteChannel(channelId: string): Promise<void> {
   await channel.related('members').detach()
   await channel.related('messages').query().delete()
   await channel.delete()
+}
+
+async function createChannel(channelId: string, channelType: string, adminId: number): Promise<Channel> {
+    const channel = await Channel.create({
+      id: channelId,
+      adminId: adminId,
+      channelType: channelType,
+    })
+
+    channel.related('members').attach({
+      [adminId]: {
+        pending_invite: false,
+      },
+    })
+    return channel
 }

@@ -28,8 +28,6 @@ export default boot(async ({ router }) => {
   // add route guard to check auth user
   router.beforeEach(async (to) => {
     const isAuthenticated = await userStore.checkAuth()
-    console.log('isAuthenticated:', isAuthenticated)
-    console.log('user:', userStore.user)
 
     // route requires authentication
     if (to.meta.requiresAuth && !isAuthenticated) {

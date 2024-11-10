@@ -3,6 +3,7 @@ import { Channel, User, UserCreateAccountProps, UserStatus} from 'src/components
 import { Notify } from 'quasar';
 import { authService, authManager, channelService } from 'src/services'
 import { useChannelStore } from 'src/stores/channelStore'
+import { channelNameRegex} from 'src/utils/regex'
 
 interface UserState {
   loading: boolean,
@@ -28,7 +29,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   acceptInvitation: (channelId: string) => void,
   rejectInvitation: (channelId: string) => void,
   isAdmin:(channelId: string) => boolean,
-  createChannel(channelName: string, isPrivate: boolean, usernames: string | undefined): boolean,
+  createChannel(channelName: string, isPrivate: boolean, usernames: string | undefined): Promise<boolean>,
   checkAuth: () => Promise<boolean>
 }>('userStore', {
   		state: (): UserState => ({
@@ -211,7 +212,6 @@ export const useUserStore = defineStore<'userStore', UserState, {
               user_typing: null,
               type: channel.channelType
             })
-            console.log('This is a response:', res)
             Notify.create({
               type: 'positive',
               message: res.message,
@@ -291,49 +291,48 @@ export const useUserStore = defineStore<'userStore', UserState, {
           const channel = this.channels.find(channel => channel.id === channelId);
           return channel?.is_admin || false
         },
-        createChannel(channelName, isPrivate, usernames) {
-          console.log(channelName, isPrivate, usernames)
-          return true
+        async createChannel(channelId, isPrivate, usernames) {
 
-          // if (!channelNameRegex.test(channelName)) {
-          //   return false;
-          // }
-
-          // const channelExists = this.channels.some(channel => channel.id === channelId);
-          // if (channelExists) {
-          //   return false;
-          // }
+          if (!channelNameRegex.test(channelId)) {
+             return false;
+          }
           
-          // const usernamesArray = usernames
-          // ? usernames
-          //     .split(',')
-          //     .map(username => username.trim())
-          //     .filter(username => username) 
-          // : [];
-          // console.log(usernamesArray);
+          const usernamesArray = usernames
+            ? usernames
+            .split(',')
+            .map(username => username.trim())
+            .filter(username => username) 
+            : [];
+          console.log(usernamesArray)
           
-          // const newChannel = {
-          //   id: channelId,
-          //   has_new_messages: 0,
-          //   type: isPrivate ? 'private' : 'public' as ChannelType,
-          //   channel_members: this.user ? [{
-          //     display_name: this.user.nickname,
-          //     nickname: this.user.nickname,
-          //     status: this.user.status,
-          // }] : [],
-          //   is_someone_typing: false,
-          //   user_typing: null,
-          //   admin_id: this.user?.nickname || '',
-          // };
-          // console.log(newChannel.channel_members)
-        
-          // this.channels.unshift(newChannel);
-          // Notify.create({
-          //   type: 'positive',
-          //   message: `Channel "${channelId}" was successfully created!`,
-          //   timeout: 3000
-          // });
-          // return true;
+          try {
+            const newChannel = await channelService.createChannel(channelId, isPrivate ? 'private' : 'public')
+            useChannelStore().setCurrentChannel(channelId)
+            this.channels.push({
+              has_new_messages: 0,
+              id: newChannel.id,
+              is_admin: newChannel.is_admin,
+              is_someone_typing: false,
+              user_typing: null,
+              type: newChannel.channelType
+            })
+            Notify.create({
+              type: 'positive',
+              message: `Channel "${channelId}" was successfully created!`,
+              timeout: 3000,
+              position: 'top-right'
+            })
+            return true
+          }
+          catch (error) {
+            Notify.create({
+              type: 'negative',
+              message: 'Channel already exists!',
+              timeout: 3000,
+              position: 'top-right'
+            })
+            return false
+          }          
         },
 
         async checkAuth() {

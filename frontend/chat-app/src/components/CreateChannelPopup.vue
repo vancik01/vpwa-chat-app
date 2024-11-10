@@ -46,10 +46,13 @@
       };
     },
     methods: {
-      createChannel() {
-        const result = this.userStore.createChannel(this.channelName, this.isPrivate, this.usernames);
+      async createChannel() {
+        const result = await this.userStore.createChannel(this.channelName, this.isPrivate, this.usernames);
+        console.log('Store function returned:', result);
+
         if (result) {
-          this.isPopupOpen = false;
+          this.isPopupOpen = false
+          this.router.push('/channel/' + this.channelName)
         } else {
           this.errorMessage = 'Invalid channel name';
         }
