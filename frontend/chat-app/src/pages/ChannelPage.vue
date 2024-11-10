@@ -37,7 +37,7 @@
               </q-infinite-scroll>
             </q-scroll-area>
         </div>
-        <div class="is-typing-component">
+        <div v-if="channelStore.current_channel?.is_someone_typing" class="is-typing-component">
           <strong>User Name</strong> is typing ...
         </div>
         
@@ -80,16 +80,15 @@ async function onLoadNew(index: number, done: VoidFunction) {
   done();
 }
 
+
 onMounted(async () => {
-  if(route.params.id){
-    channelStore.setCurrentChannel(route.params.id as string)
-    nextTick(() => {
-      if (chatScroll.value) {
-        chatScroll.value.setScrollPosition('vertical', 0, 0); // Replace with actual scroll handler if different
-      }
-    });
+  if (route.params.id) {
+    await channelStore.setCurrentChannel(route.params.id as string);
+    await nextTick();
+    scrollToBottom();
   }
-})
+});
+
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -105,7 +104,12 @@ channelStore.$onAction(({ name, after }) => {
           // Scroll to bottom after a new message is added
           scrollToBottom();
         });
+      } else if (name === 'setCurrentChannel'){
+        after(() => {
+          scrollToBottom()
+        })
       }
+
     });
 
 </script>

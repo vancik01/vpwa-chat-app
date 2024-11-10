@@ -185,7 +185,6 @@ export default class ChannelsController {
         q.where('pending_invite', false).where('is_banned', false).where('user_id', user.id)
       })
       .firstOrFail()
-    console.log(channel)
 
     const message = await Message.create({
       channelId: channelId,

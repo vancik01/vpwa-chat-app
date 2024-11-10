@@ -10,7 +10,7 @@
             <div class="message-content">
                 <div class="message-meta">
                     <div class="message-user-name">{{message.type == "message" ? message.from?.display_name : "Bot"}}</div>
-                    <div class="message-time">{{moment(message.sent_at).toLocaleString()}}</div>
+                    <div class="message-time">{{sentAt.format("HH:mm:ss")}} {{ !sentAt.isSame(new Date(), "day") ? sentAt.format("DD.MM.YYYY") : "" }}</div>
                 </div>
                 <p>
                     <template v-for="(content, index) in parseMessageContent(props.message.messageContent)" :key="index">
@@ -36,6 +36,8 @@ const userStore = useUserStore()
 const props = defineProps<{
     message: Message
 }>()
+
+const sentAt = moment(props.message.sent_at)
 
 function parseMessageContent(messageContent: string): (string | VNode)[] {
     const parts: string[] = messageContent.split(usernameRegex);

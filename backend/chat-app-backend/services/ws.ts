@@ -1,6 +1,5 @@
 import { Server, Socket } from 'socket.io'
 import server from '@adonisjs/core/services/server'
-import { HttpContextFactory } from '@adonisjs/core/factories/http'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import User from '#models/user'
 import { Secret } from '@adonisjs/core/helpers'
@@ -27,7 +26,6 @@ class Ws {
     // Handle connections with authentication
     this.io.use(async (socket, next) => {
       try {
-        // Extract token from the handshake headers or auth properties
         const token = socket.handshake.auth.token || socket.handshake.headers['authorization']
         const verifyToken = await DbAccessTokensProvider.forModel(User).verify(
           new Secret(token.split(' ')[1])
@@ -40,7 +38,7 @@ class Ws {
           socket.disconnect()
         }
 
-        next() // Proceed with connection
+        next()
       } catch (error) {
         console.error('Authentication failed:', error)
         next(new Error('Unauthorized'))
@@ -51,25 +49,20 @@ class Ws {
       const userId = socket.data.userId
 
       if (userId) {
-        // Check if the user already has a connection array
         if (!this.userConnections[userId]) {
           this.userConnections[userId] = []
         }
 
-        // Store the new connection into the array
         this.userConnections[userId].push(socket)
         console.log(`User ${userId} connected with socket ID ${socket.id}`)
 
-        // Handle disconnection for this specific socket
         socket.on('disconnect', () => {
           console.log(`User ${userId} disconnected from socket ID ${socket.id}`)
 
-          // Remove the disconnected socket from the user's connection array
           this.userConnections[userId] = this.userConnections[userId].filter(
             (s) => s.id !== socket.id
           )
 
-          // If no more connections are left, remove the user entry
           if (this.userConnections[userId].length === 0) {
             delete this.userConnections[userId]
           }

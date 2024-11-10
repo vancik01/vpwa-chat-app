@@ -4,6 +4,7 @@ import { useUserStore } from './userStore'
 import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex } from 'src/utils/regex'
 import { channelService } from 'src/services'
 import { Notify } from 'quasar';
+import moment from 'moment'
 
 interface ChannelState {
   current_channel: Channel | null,
@@ -18,7 +19,7 @@ interface ChannelState {
 export const useChannelStore = defineStore<'channelStore', ChannelState, NonNullable<unknown>, {
   postMessage: (messageContent:string, messageType:MessageType) => void,
   loadMessages: (page:number) => Promise<Message[]>,
-  setCurrentChannel: (channelId:string) => void,
+  setCurrentChannel: (channelId:string) => Promise<void>,
   	}>('channelStore', {
   		state: (): ChannelState => ({
 			is_loading:false,
@@ -85,7 +86,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 					const messageObject: Message = {
 					  from: userMemberObject,
 					  messageContent: messageContent,
-					  sent_at: new Date().toLocaleTimeString(),
+					  sent_at: moment().toLocaleString(),
 					  type: 'message',
 					};
 					const res = await channelService.sendMessage(this.current_channel.id, messageObject.messageContent)
