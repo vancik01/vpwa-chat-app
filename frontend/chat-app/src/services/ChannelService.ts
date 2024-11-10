@@ -23,6 +23,13 @@ class ChannelService {
       return response.data
     }
 
+    async sendMessage(channelId: string, content:string): Promise<AxiosResponse> {
+      const response = await api.post(`/channels/${channelId}/messages/`, {
+        messageContent: content
+      })
+      return response
+    }
+
     async joinChannel(channelId: string): Promise<{message: string}> {
       const response = await api.post(`/channels/${channelId}`)
       return response.data

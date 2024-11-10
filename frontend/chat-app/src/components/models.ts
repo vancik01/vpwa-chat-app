@@ -64,3 +64,9 @@ export type SystemMessage = {
 
 export type Message = TextMessage | SystemMessage;
 
+export type WsMessage ={
+  messageContent: string,
+  senderId: number,
+  channelId: string,
+  sentAt: string
+}

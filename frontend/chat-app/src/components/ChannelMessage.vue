@@ -4,7 +4,7 @@
             <div class="message-user">
                 <span>💬</span>
                 <div class="message-user-status">
-                    <StatusDot status="online" />
+                    <StatusDot v-if="props.message.from" :status="props.message.from.status" />
                 </div>
             </div>
             <div class="message-content">
@@ -49,7 +49,7 @@ function parseMessageContent(messageContent: string): (string | VNode)[] {
         }
         if (matches[index]) {
             const nickname = matches[index][0].substring(1);
-            result.push(h(MessageMention, { nickname: nickname, isCurrentUserMentioned: userStore.user ? userStore.user.nickname === nickname : false })); // Create a VNode for StatusDot component
+            result.push(h(MessageMention, { nickname: nickname, isCurrentUserMentioned: userStore.user ? userStore.user.nickname === nickname : false }));
         }
     });
 

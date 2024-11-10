@@ -31,3 +31,7 @@ router.post('/channels/:channelId', [ChannelsController, 'joinChannel']).use(mid
 router
   .get('/channels/:channelId/messages/:page', [ChannelsController, 'getMessages'])
   .use(middleware.auth())
+
+router
+  .post('/channels/:channelId/messages', [ChannelsController, 'postMessage'])
+  .use(middleware.auth())
