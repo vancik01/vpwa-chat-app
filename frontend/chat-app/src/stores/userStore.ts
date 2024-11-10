@@ -199,7 +199,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             return;
           }
           try {
-            await channelService.leaveChannel(channelId, this.user.id)
+            await channelService.leaveChannel(channelId)
             const channelStore = useChannelStore()
             if (channelStore.current_channel?.id === channelId) {
               this.router.push('/')
@@ -235,15 +235,36 @@ export const useUserStore = defineStore<'userStore', UserState, {
             })
           }
   			},
-  			joinChannel(channelId) {
-  				console.log(channelId)
-          // this.channels.push({
-          //   has_new_messages: 0,
-          //   id: channelId,
-          //   is_someone_typing: false,
-          //   type: 'private',
-          //   user_typing: null,
-          // })
+  			async joinChannel(channelId) {
+          try {
+            const res = await channelService.joinChannel(channelId)
+            const channel = await channelService.getChannelDetails(channelId)
+            useChannelStore().setCurrentChannel(channelId)
+            this.channels.push({
+              has_new_messages: 0,
+              id: channel.id,
+              is_admin: channel.is_admin,
+              is_someone_typing: false,
+              user_typing: null,
+              type: channel.channelType
+            })
+            console.log('This is a response:', res)
+            Notify.create({
+              type: 'positive',
+              message: res.message,
+              timeout: 3000,
+              position: 'top-right'
+            })
+          }
+          catch (error) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to join "${channelId}" channel.`;
+            Notify.create({
+              type: 'negative',
+              message: errorMessage,
+              timeout: 3000,
+              position: 'top-right'
+            })
+          }
   			},
   			revokeInvitation(channelId) {
   				console.log(channelId)
@@ -257,7 +278,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             return;
           }
           try {
-            await channelService.leaveChannel(channelId, this.user.id)
+            await channelService.leaveChannel(channelId)
             const channelStore = useChannelStore()
             if (channelStore.current_channel?.id === channelId) {
               this.router.push('/')
@@ -288,12 +309,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
   					channel.has_new_messages = 0;
   				}
   			},
-        acceptInvitation(channelId) {
+        async acceptInvitation(channelId) {
           const invitationIndex = this.invitations.findIndex((inv) => inv.id === channelId);
           if (invitationIndex !== -1) {
+            this.joinChannel(channelId)
             const acceptedChannel = this.invitations[invitationIndex];
-            this.channels.unshift(acceptedChannel);
-            this.invitations.splice(invitationIndex, 1);
+            this.channels.unshift(acceptedChannel)
+            this.invitations.splice(invitationIndex, 1)
           }
         },
         rejectInvitation(channelId) {

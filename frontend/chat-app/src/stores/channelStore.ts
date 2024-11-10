@@ -40,7 +40,6 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				// Check if the message starts with a command
 				let commandMatch = null;
 				if ((commandMatch = messageContent.match(joinRegex))) {
-				  // Call the dummy function to handle the /join command
 				  const channelName = commandMatch[1];
 				  userStore.joinChannel(channelName)
 			  

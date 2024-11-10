@@ -3,8 +3,8 @@ import type { AxiosResponse} from 'axios';
 import { api } from 'src/boot/axios';
 
 class ChannelService {
-    async leaveChannel(channelId: string, userId: number): Promise<AxiosResponse> {
-        const response = await api.delete(`/channels/${channelId}`, { data: { userId } });
+    async leaveChannel(channelId: string): Promise<AxiosResponse> {
+        const response = await api.delete(`/channels/${channelId}`);
         return response.data;
     }
   
@@ -20,6 +20,11 @@ class ChannelService {
 
     async loadMessages(channelId: string, page: number): Promise<ApiMessage[]> {
       const response = await api.get(`/channels/${channelId}/messages/${page}`)
+      return response.data
+    }
+
+    async joinChannel(channelId: string): Promise<{message: string}> {
+      const response = await api.post(`/channels/${channelId}`)
       return response.data
     }
   }
