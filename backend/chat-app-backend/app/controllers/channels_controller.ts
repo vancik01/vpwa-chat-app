@@ -99,7 +99,7 @@ export default class ChannelsController {
       })
       .preload('messages', (q) => {
         q.orderBy('createdAt', 'desc')
-          .offset((page - 1) * perPage)
+          .offset(page * perPage)
           .limit(perPage)
           .select(['messageContent', 'senderId', 'createdAt'])
       })
@@ -123,7 +123,7 @@ export default class ChannelsController {
       .query()
       .where('user_id', user.id)
       .andWherePivot('pending_invite', true)
-      .first();
+      .first()
 
     if (channel.channelType !== 'public' && !isInvited) {
       return response.forbidden({ message: 'This channel is private!' })
@@ -133,7 +133,7 @@ export default class ChannelsController {
       .query()
       .where('user_id', user.id)
       .andWherePivot('pending_invite', false)
-      .first();
+      .first()
 
     if (isMember) {
       return response.badRequest({ message: `You are already a member of channel: ${channelId}` })
@@ -143,7 +143,7 @@ export default class ChannelsController {
       [user.id]: {
         pending_invite: false,
       },
-    });
+    })
 
     return response.send({ message: `Successfully joined channel: ${channelId}` })
   }
@@ -151,14 +151,15 @@ export default class ChannelsController {
   async leaveChannel({ params, response, auth }: HttpContext) {
 
     const user = await auth.getUserOrFail()
-    const { channelId } = params;
+    const { channelId } = params
 
     const channel = await Channel.query()
       .where('id', channelId)
       .whereHas('members', (memberQuery) => memberQuery.where('user_id', user.id))
-      .first();
+      .first()
 
     if (!channel) {
+      return response.notFound({ message: 'User is not a member of this channel.' })
       return response.notFound({ message: 'User is not a member of this channel.' })
     }
 

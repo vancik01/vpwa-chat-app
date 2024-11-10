@@ -127,8 +127,6 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				const userStore = useUserStore()
 				try {
 					const newChannel = await channelService.getChannelDetails(channelId)
-					this.page = 1,
-					this.is_last_page = false
 					this.router.push(`/channel/${channelId}`)
 					this.current_channel = {
 						has_new_messages: 0,
@@ -140,8 +138,11 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 					}
 					this.members = newChannel.members
 					userStore.viewedMessageInChannel(channelId)
+					this.page = 0
+					this.is_last_page = false
 					this.messages = await this.loadMessages(this.page) // load first 10 messages
 					this.is_loading = false;
+					this.page = 1
 				
 				} catch (error) {
 					Notify.create({
