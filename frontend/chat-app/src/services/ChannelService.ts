@@ -34,6 +34,11 @@ class ChannelService {
       const response = await api.post(`/channels/${channelId}`)
       return response.data
     }
+
+    async createChannel(channelId: string, channelType: string): Promise<ApiChannelDetail> {
+      const response = await api.post('/channels', { name: channelId, channelType: channelType })
+      return response.data
+    }
   }
   
 export default new ChannelService();
