@@ -26,6 +26,7 @@ router.post('/channels', [ChannelsController, 'store']).use(middleware.auth())
 router.get('/channels/:channelId', [ChannelsController, 'show']).use(middleware.auth())
 
 router.delete('/channels/:channelId', [ChannelsController, 'leaveChannel']).use(middleware.auth())
+router.post('/channels/:channelId', [ChannelsController, 'joinChannel']).use(middleware.auth())
 
 router
   .get('/channels/:channelId/messages/:page', [ChannelsController, 'getMessages'])

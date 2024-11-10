@@ -108,32 +108,67 @@ export default class ChannelsController {
     response.send(channel.messages.reverse())
   }
 
-  // async joinChannel({ params, request, response, auth }: HttpContext) {
-  //   console.log('join channel', auth)
-  // }
+  async joinChannel({ params, response, auth }: HttpContext) {
+    const user = await auth.getUserOrFail()
+    const { channelId } = params
 
-  async leaveChannel({ params, request, response, auth }: HttpContext) {
+    const channel = await Channel.query().where('id', channelId).first()
 
-    const user = await auth.getUserOrFail();
+    if (!channel) {
+      // await createChannel()
+      return response.notFound({ message: 'Channel not found.' })
+    }
+
+    const isInvited = await channel.related('members')
+      .query()
+      .where('user_id', user.id)
+      .andWherePivot('pending_invite', true)
+      .first();
+
+    if (channel.channelType !== 'public' && !isInvited) {
+      return response.forbidden({ message: 'This channel is private!' })
+    }
+
+    const isMember = await channel.related('members')
+      .query()
+      .where('user_id', user.id)
+      .andWherePivot('pending_invite', false)
+      .first();
+
+    if (isMember) {
+      return response.badRequest({ message: `You are already a member of channel: ${channelId}` })
+    }
+
+    await channel.related('members').attach({
+      [user.id]: {
+        pending_invite: false,
+      },
+    });
+
+    return response.send({ message: `Successfully joined channel: ${channelId}` })
+  }
+
+  async leaveChannel({ params, response, auth }: HttpContext) {
+
+    const user = await auth.getUserOrFail()
     const { channelId } = params;
-    const { userId } = request.body();
 
     const channel = await Channel.query()
       .where('id', channelId)
-      .whereHas('members', (memberQuery) => memberQuery.where('user_id', userId))
+      .whereHas('members', (memberQuery) => memberQuery.where('user_id', user.id))
       .first();
 
     if (!channel) {
-      return response.notFound({ message: 'User is not a member of this channel.' });
+      return response.notFound({ message: 'User is not a member of this channel.' })
     }
 
-    await channel.related('members').detach([userId]);
+    await channel.related('members').detach([user.id])
 
-    if (channel.adminId === userId) {
-      await deleteChannel(channelId);
+    if (channel.adminId === user.id) {
+      await deleteChannel(channelId)
     }
 
-    response.send({ message: 'User has left the channel.' });
+    response.send({ message: 'User has left the channel.' })
   }
 
   // ...
