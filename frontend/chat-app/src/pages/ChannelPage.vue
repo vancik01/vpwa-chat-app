@@ -83,9 +83,9 @@ async function onLoadNew(index: number, done: VoidFunction) {
 
 onMounted(async () => {
   if (route.params.id) {
-    await channelStore.setCurrentChannel(route.params.id as string);
-    await nextTick();
-    scrollToBottom();
+    setTimeout(() => {
+      channelStore.setCurrentChannel(route.params.id as string);
+    }, 0)
   }
 });
 
