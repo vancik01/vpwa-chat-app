@@ -49,7 +49,6 @@ class Ws {
 
     this.io.on('connection', (socket: Socket) => {
       const userId = socket.data.userId
-      console.log(this.userConnections)
 
       if (userId) {
         // Check if the user already has a connection array
