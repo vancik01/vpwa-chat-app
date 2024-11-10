@@ -5,10 +5,9 @@
           <q-icon v-if="channelStore.current_channel?.type === 'private'" name="lock" />
           <q-icon v-else name="tag" />
           <span>{{ channelStore.current_channel?.id }}</span>
-          {{ channelStore.current_channel?.type }}
         </div>
         <div class="channel-messages">
-          <div v-if="channelStore.page === 1 && channelStore.is_loading" class="init-loading">
+          <div v-if="channelStore.page === 0 && channelStore.is_loading" class="init-loading">
             <q-spinner-tail
               color="primary"
               size="2em"
@@ -67,13 +66,14 @@ async function onLoadNew(index: number, done: VoidFunction) {
     return
   }
 
-  channelStore.page = index;
   channelStore.is_loading = true;
-  const newMessages = await channelStore.loadMessages(index);
-  console.log('Len', newMessages.length)
+  console.log(channelStore.page, channelStore.is_loading)
+  const newMessages = await channelStore.loadMessages(channelStore.page);
+  
   if(newMessages.length === 0){
     channelStore.is_last_page = true
   } else {
+    channelStore.page = channelStore.page + 1
     channelStore.messages.unshift(...newMessages);
   }
   channelStore.is_loading = false;
@@ -83,6 +83,11 @@ async function onLoadNew(index: number, done: VoidFunction) {
 onMounted(async () => {
   if(route.params.id){
     channelStore.setCurrentChannel(route.params.id as string)
+    nextTick(() => {
+      if (chatScroll.value) {
+        chatScroll.value.setScrollPosition('vertical', 0, 0); // Replace with actual scroll handler if different
+      }
+    });
   }
 })
 
