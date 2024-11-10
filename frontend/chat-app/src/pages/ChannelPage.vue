@@ -181,5 +181,16 @@ section.channel-wraper{
   justify-content: center;
   align-items: center;
 }
+</style>
 
+<style>
+.q-infinite-scroll__loading.invisible{
+  display: none;
+}
+
+.q-scrollarea__content.absolute{
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+}
 </style>
