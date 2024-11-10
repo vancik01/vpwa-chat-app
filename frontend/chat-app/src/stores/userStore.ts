@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
-import { Channel, User, UserCreateAccountProps, UserStatus, ApiChannelsList } from 'src/components/models'
+import { Channel, User, UserCreateAccountProps, UserStatus} from 'src/components/models'
 import { Notify } from 'quasar';
 import { authService, authManager, channelService } from 'src/services'
-import { api } from 'src/boot/axios'
 import { useChannelStore } from 'src/stores/channelStore'
 
 interface UserState {
@@ -132,9 +131,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
         async initializeChatApp(){
           this.loading = true
-          const res = await api.get('/channels')
-          const data: ApiChannelsList[] = res.data;
-          this.channels = data.map((channel:ApiChannelsList) => ({
+          const data = await channelService.getChannels()
+          this.channels = data.map((channel) => ({
             has_new_messages: 0,
             id: channel.id,
             is_admin: channel.isAdmin,

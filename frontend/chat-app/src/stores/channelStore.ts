@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { ApiChannelDetail, ApiMessage, Channel, ChannelMember, Message, MessageType } from 'src/components/models'
+import { Channel, ChannelMember, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
 import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex } from 'src/utils/regex'
-import { api } from 'src/boot/axios'
+import { channelService } from 'src/services'
 import { Notify } from 'quasar';
 
 interface ChannelState {
@@ -101,8 +101,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   			async loadMessages(page: number) {
 				if (this.current_channel) {
 				  try {
-					const res = await api.get(`/channels/${this.current_channel.id}/messages/${page}`)
-					const messages:ApiMessage[] = res.data
+					const messages = await channelService.loadMessages(this.current_channel.id, page)
 				  	return messages.map((message) => {
 						return {
 							type: 'message',
@@ -128,8 +127,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				this.is_loading = true;
 				const userStore = useUserStore()
 				try {
-					const res = await api.get(`/channels/${channelId}`)
-					const newChannel:ApiChannelDetail = res.data
+					const newChannel = await channelService.getChannelDetails(channelId)
 					this.page = 1,
 					this.is_last_page = false
 					this.router.push(`/channel/${channelId}`)
