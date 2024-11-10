@@ -85,9 +85,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
 
   			async logout() {
           try {
+            const channelStore = useChannelStore()
             await authService.logout()
             authManager.removeToken() 
             this.user = null
+            channelStore.$reset()
+            
             this.router.push('/auth/login')
       
             Notify.create({
@@ -95,6 +98,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
               message: 'Logged out successfully.',
               timeout: 3000
             })
+            
           } catch (error) {
             console.error('Logout failed:', error)
           }
