@@ -3,7 +3,7 @@ import { Channel, User, UserCreateAccountProps, UserStatus} from 'src/components
 import { Notify } from 'quasar';
 import { authService, authManager, channelService } from 'src/services'
 import { useChannelStore } from 'src/stores/channelStore'
-
+import { io } from 'socket.io-client';
 interface UserState {
   loading: boolean,
   user: User | null,
@@ -140,6 +140,43 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null,
             type: channel.channelType
           }))
+
+          // Initialize the Socket.IO client
+          const socket = io('http://localhost:3333', {
+            path: '/socket.io', // Ensure this path matches the server's configuration
+            transports: ['websocket', 'polling'],
+            auth: {
+              // TODO: Replace with token and implement token autentication
+              token: `Bearer ${authManager.getToken()}`
+            }
+          });
+
+          // Handle connection events
+          socket.on('connect', () => {
+            console.log('Connected to server with socket ID:', socket.id);
+            socket.on('message', (data) => {
+              console.log(data)
+            })
+
+            // Emit a custom event to the server
+            socket.emit('my_custom_event', { data: 'Hello from the client!' });
+          });
+
+          // Handle disconnection
+          socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+          });
+
+          // Listen for events from the server
+          socket.on('server_event', (data) => {
+            console.log('Received data from server:', data);
+          });
+
+          // Handle connection errors
+          socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+          });
+
           this.loading = false
         },
   			setStatus(status: UserStatus) {
