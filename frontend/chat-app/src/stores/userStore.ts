@@ -4,7 +4,8 @@ import { Notify } from 'quasar';
 import { authService, authManager, channelService } from 'src/services'
 import { useChannelStore } from 'src/stores/channelStore'
 import { channelNameRegex} from 'src/utils/regex'
-
+import { io } from 'socket.io-client';
+import { initWsConnection } from 'src/services/WebsocketHandler';
 interface UserState {
   loading: boolean,
   user: User | null,
@@ -141,11 +142,29 @@ export const useUserStore = defineStore<'userStore', UserState, {
             user_typing: null,
             type: channel.channelType
           }))
+
+          // Initialize the Socket.IO client
+          const socket = io(process.env.API_URL, {
+            path: '/socket.io', // Ensure this path matches the server's configuration
+            transports: ['websocket', 'polling'],
+            auth: {
+              // TODO: Replace with token and implement token autentication
+              token: `Bearer ${authManager.getToken()}`
+            }
+          });
+          initWsConnection(socket)
+
           this.loading = false
         },
   			setStatus(status: UserStatus) {
   				if(this.user) {
+            const channelStore = useChannelStore()
   					this.user.status = status
+            if(channelStore.members){
+              const userMemberObject = channelStore.members.find((u) => u.id === this.user?.id)
+              console.log(userMemberObject)
+              if(userMemberObject) userMemberObject.status = status
+            }
   				}
   			},
   			inviteUserToChannel(channelId, userId) {

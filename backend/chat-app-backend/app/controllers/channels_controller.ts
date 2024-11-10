@@ -1,5 +1,7 @@
 import Channel from '#models/channel'
+import Message from '#models/message'
 import type { HttpContext } from '@adonisjs/core/http'
+import ws from '../../services/ws.js'
 
 export default class ChannelsController {
   isChannelIdValid(input: string): boolean {
@@ -112,7 +114,8 @@ export default class ChannelsController {
       return response.send({ message: `Channel ${channelId} created`})
     }
 
-    const isMember = await channel.related('members')
+    const isMember = await channel
+      .related('members')
       .query()
       .where('user_id', user.id)
       .andWherePivot('pending_invite', false)
@@ -122,7 +125,8 @@ export default class ChannelsController {
       return response.badRequest({ message: `You are already a member of channel: ${channelId}` })
     }
 
-    const isInvited = await channel.related('members')
+    const isInvited = await channel
+      .related('members')
       .query()
       .where('user_id', user.id)
       .andWherePivot('pending_invite', true)
@@ -142,7 +146,6 @@ export default class ChannelsController {
   }
 
   async leaveChannel({ params, response, auth }: HttpContext) {
-
     const user = await auth.getUserOrFail()
     const { channelId } = params
 
@@ -162,6 +165,27 @@ export default class ChannelsController {
     }
 
     response.send({ message: 'User has left the channel.' })
+  }
+
+  async postMessage({ params, request, response, auth }: HttpContext) {
+    const { channelId } = params
+    const user = auth.getUserOrFail()
+    const body = request.body()
+    const { messageContent } = body
+    const channel = await Channel.query()
+      .where('id', channelId)
+      .whereHas('members', (q) => {
+        q.where('pending_invite', false).where('is_banned', false).where('user_id', user.id)
+      })
+      .firstOrFail()
+    console.log(channel)
+
+    const message = await Message.create({
+      channelId: channelId,
+      messageContent,
+      senderId: user.id,
+    })
+    ws.notifyChannelNewMessage(channelId, message)
   }
 
   // ...

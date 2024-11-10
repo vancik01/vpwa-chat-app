@@ -56,7 +56,7 @@ export default class extends BaseSeeder {
           return {
             first_name: firstName,
             last_name: lastName,
-            email: faker.internet.email(),
+            email: faker.internet.email().toLowerCase(),
             nickname,
             password: 'password',
           }

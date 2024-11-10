@@ -33,7 +33,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
   			// Add getters here if needed with types
   		},
   		actions: {
-			postMessage(messageContent: string) {
+			async postMessage(messageContent: string) {
 				// Regular expressions for commands
 				const userStore = useUserStore()
 			  
@@ -89,20 +89,24 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 
 				} else {
 				  const userStore = useUserStore();
-				  if (userStore.user) {
+				  const userMemberObject = this.members.find((member) => member.id === userStore.user?.id)
+				  if (userMemberObject && this.current_channel) {
 					const messageObject: Message = {
-					  from: {
-						id:1,
-						display_name:'',
-						nickname: userStore.user.nickname,
-						status: 'online',
-					  },
+					  from: userMemberObject,
 					  messageContent: messageContent,
 					  sent_at: new Date().toLocaleTimeString(),
 					  type: 'message',
 					};
-			  
-					this.messages.push(messageObject);
+					const res = await channelService.sendMessage(this.current_channel.id, messageObject.messageContent)
+					if(res.status === 200){
+						this.messages.push(messageObject);
+					} else {
+						Notify.create({
+							type: 'negative',
+							message: 'Failed to send message',
+							timeout: 3000,
+						  });
+					}
 				  }
 				}
 			  },
