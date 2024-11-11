@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, ChannelMember, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
-import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex, joinTypeRegex } from 'src/utils/regex'
+import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex, joinTypeRegex, kickRegex } from 'src/utils/regex'
 import { channelService } from 'src/services'
 import { Notify } from 'quasar';
 import moment from 'moment'
@@ -43,6 +43,10 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 			if ((commandMatch = messageContent.match(joinRegex))) {
 				const channelName = commandMatch[1];
 				userStore.joinChannel(channelName)
+
+			} else if ((commandMatch = messageContent.match(kickRegex))) {
+				const nickName = commandMatch[1];
+				userStore.kickUserFromChannel(this.current_channel?.id as string, nickName)
 
 			} else if ((commandMatch = messageContent.match(joinTypeRegex))) {
 				const channelName = commandMatch[1];
