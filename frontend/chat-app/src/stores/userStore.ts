@@ -24,7 +24,6 @@ export const useUserStore = defineStore<'userStore', UserState, {
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
   inviteUserToChannel: (channelId: string, nickName:string) => Promise<boolean>,
-  revokeInvitation: (channelId: string, nickname:string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
   acceptInvitation: (channelId: string) => void,
@@ -86,10 +85,10 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			async logout() {
           try {
             const channelStore = useChannelStore()
+            channelStore.$reset()
+            this.$reset()
             await authService.logout()
             authManager.removeToken() 
-            this.user = null
-            channelStore.$reset()
             
             this.router.push('/auth/login')
       
@@ -273,9 +272,6 @@ export const useUserStore = defineStore<'userStore', UserState, {
             })
           }
   			},
-  			revokeInvitation(channelId) {
-  				console.log(channelId)
-  			},
   			async deleteChannel(channelId) {
           if (!this.user?.id) {
             return;
@@ -365,6 +361,11 @@ export const useUserStore = defineStore<'userStore', UserState, {
               timeout: 3000,
               position: 'top-right'
             })
+
+            for (const username of usernamesArray) {
+              this.inviteUserToChannel(channelId, username)
+            }
+
             return true
           }
           catch (error) {

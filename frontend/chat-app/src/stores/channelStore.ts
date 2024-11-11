@@ -53,7 +53,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				}
 				userStore.createChannel(channelName, isPrivate, '')
 
-			} else if ((commandMatch = messageContent.match(inviteRegex))) {
+			} else if ((commandMatch = messageContent.match(inviteRegex)) || (commandMatch = messageContent.match(revokeRegex))) {
 				const nickName = commandMatch[1];
 				const result = await userStore.inviteUserToChannel(this.current_channel?.id as string, nickName)
 
@@ -66,10 +66,6 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 					};
 					this.messages.push(systemMessage);
 				}
-
-			} else if ((commandMatch = messageContent.match(revokeRegex))) {
-				const nickName = commandMatch[1];
-				userStore.revokeInvitation(this.current_channel?.id as string, nickName)
 
 			} else if (commandMatch = messageContent.match(cancelRegex)) {
 				userStore.leaveChannel(this.current_channel?.id as string)

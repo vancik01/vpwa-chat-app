@@ -215,7 +215,11 @@ export default class ChannelsController {
     const user = await auth.getUserOrFail()
     const { channelId } = params
     const {invitedNickName }= request.body()
-    const invited = await User.query().where('nickname', invitedNickName).firstOrFail()
+    const invited = await User.query().where('nickname', invitedNickName).first()
+    
+    if (!invited) {
+      return response.notFound({ message: `User ${invitedNickName} not found` })
+    }
 
     const channel = await Channel.query().where('id', channelId).first()
     if (!channel) {
