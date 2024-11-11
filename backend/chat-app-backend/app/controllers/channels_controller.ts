@@ -4,7 +4,6 @@ import User from '#models/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import ws from '../../services/ws.js'
 
-
 export default class ChannelsController {
   isChannelIdValid(input: string): boolean {
     const regex = /^[a-zA-Z0-9_]+$/
@@ -112,8 +111,8 @@ export default class ChannelsController {
     const channel = await Channel.query().where('id', channelId).first()
 
     if (!channel) {
-      const newChannel =  await createChannel(channelId, 'public', user.id)
-      return response.send({ message: `Channel ${channelId} created`})
+      const newChannel = await createChannel(channelId, 'public', user.id)
+      return response.send({ message: `Channel ${channelId} created` })
     }
 
     const isBanned = await channel
@@ -150,11 +149,14 @@ export default class ChannelsController {
     }
 
     if (isInvited) {
-      await channel.related('members').sync({
-        [user.id]: {
-          pending_invite: false,
+      await channel.related('members').sync(
+        {
+          [user.id]: {
+            pending_invite: false,
+          },
         },
-      }, false)
+        false
+      )
       return response.send({ message: `Successfully joined channel: ${channelId}` })
     }
 
@@ -181,7 +183,7 @@ export default class ChannelsController {
     if (!channel) {
       return response.notFound({ message: 'User is not a member of this channel.' })
     }
-    
+
     await channel.related('members').detach([user.id])
 
     if (channel.adminId === user.id) {
@@ -214,9 +216,9 @@ export default class ChannelsController {
   async inviteToChannel({ params, request, response, auth }: HttpContext) {
     const user = await auth.getUserOrFail()
     const { channelId } = params
-    const {invitedNickName }= request.body()
+    const { invitedNickName } = request.body()
     const invited = await User.query().where('nickname', invitedNickName).first()
-    
+
     if (!invited) {
       return response.notFound({ message: `User ${invitedNickName} not found` })
     }
@@ -259,13 +261,16 @@ export default class ChannelsController {
         return response.badRequest({ message: 'User is already invited to the channel' })
       }
       if (isBanned) {
-        await channel.related('members').sync({
-          [invited.id]: {
-            pending_invite: true,
-            is_banned: false,
-            kick_count: 0,
+        await channel.related('members').sync(
+          {
+            [invited.id]: {
+              pending_invite: true,
+              is_banned: false,
+              kick_count: 0,
+            },
           },
-        }, false);
+          false
+        )
         return response.send({ message: 'User invited successfully' })
       }
       await channel.related('members').attach({
@@ -274,10 +279,9 @@ export default class ChannelsController {
           is_banned: false,
           kick_count: 0,
         },
-      });
+      })
       return response.send({ message: 'User invited successfully' })
-    }
-    else {
+    } else {
       if (isMember) {
         return response.badRequest({ message: 'User is already a member of the channel' })
       }
@@ -288,13 +292,16 @@ export default class ChannelsController {
         return response.forbidden({ message: 'User is banned from the channel' })
       }
       if (isBanned && channel.adminId === user.id) {
-        await channel.related('members').sync({
-          [invited.id]: {
-            pending_invite: true,
-            is_banned: false,
-            kick_count: 0,
+        await channel.related('members').sync(
+          {
+            [invited.id]: {
+              pending_invite: true,
+              is_banned: false,
+              kick_count: 0,
+            },
           },
-        }, false)
+          false
+        )
         return response.send({ message: 'User invited successfully' })
       }
       await channel.related('members').attach({
@@ -316,19 +323,23 @@ async function deleteChannel(channelId: string): Promise<void> {
   await channel.delete()
 }
 
-async function createChannel(channelId: string, channelType: string, adminId: number): Promise<Channel> {
-    const channel = await Channel.create({
-      id: channelId,
-      adminId: adminId,
-      channelType: channelType,
-    })
+async function createChannel(
+  channelId: string,
+  channelType: string,
+  adminId: number
+): Promise<Channel> {
+  const channel = await Channel.create({
+    id: channelId,
+    adminId: adminId,
+    channelType: channelType,
+  })
 
-    channel.related('members').attach({
-      [adminId]: {
-        pending_invite: false,
-        is_banned: false,
-        kick_count: 0,
-      },
-    })
-    return channel
+  channel.related('members').attach({
+    [adminId]: {
+      pending_invite: false,
+      is_banned: false,
+      kick_count: 0,
+    },
+  })
+  return channel
 }
