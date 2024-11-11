@@ -23,7 +23,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   setStatus: (status: UserStatus) => void,
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
-  inviteUserToChannel: (channelId: string, userId:string) => boolean,
+  inviteUserToChannel: (channelId: string, nickName:string) => Promise<boolean>,
   revokeInvitation: (channelId: string, nickname:string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
@@ -134,14 +134,24 @@ export const useUserStore = defineStore<'userStore', UserState, {
         async initializeChatApp(){
           this.loading = true
           const data = await channelService.getChannels()
-          this.channels = data.map((channel) => ({
-            has_new_messages: 0,
-            id: channel.id,
-            is_admin: channel.isAdmin,
-            is_someone_typing: false,
-            user_typing: null,
-            type: channel.channelType
-          }))
+          
+          data.forEach((channel) => {
+            const channelData = {
+              has_new_messages: 0,
+              id: channel.id,
+              is_admin: channel.isAdmin,
+              is_someone_typing: false,
+              user_typing: null,
+              type: channel.channelType
+            }
+      
+            if (channel.pendingInvite) {
+              this.invitations.push(channelData)
+            }
+            else {
+              this.channels.push(channelData)
+            }
+          })
 
           // Initialize the Socket.IO client
           const socket = io(process.env.API_URL, {
@@ -167,14 +177,25 @@ export const useUserStore = defineStore<'userStore', UserState, {
             }
   				}
   			},
-  			inviteUserToChannel(channelId, userId) {
-          console.log(channelId, userId)
-          const channel = this.channels.find(channel => channel.id === channelId);
-          if ((channel?.type === 'private') && (!this.isAdmin(channelId))){
-            return false
-          }
-          else {
+  			async inviteUserToChannel(channelId, nickName) {
+          try {
+            const response = await channelService.inviteToChannel(channelId, nickName)
+            Notify.create({
+              type: 'positive',
+              message: response.message,
+              timeout: 3000,
+              position: 'top-right'
+            })
             return true
+          } catch (error) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to invite user ${nickName}`;
+            Notify.create({
+              type: 'negative',
+              message: errorMessage,
+              timeout: 3000,
+              position: 'top-right'
+            })
+            return false
           }
   			},
   			async leaveChannel(channelId) {
@@ -223,7 +244,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             const res = await channelService.joinChannel(channelId)
             const channel = await channelService.getChannelDetails(channelId)
             useChannelStore().setCurrentChannel(channelId)
-            this.channels.push({
+            this.channels.unshift({
               has_new_messages: 0,
               id: channel.id,
               is_admin: channel.is_admin,
@@ -295,12 +316,11 @@ export const useUserStore = defineStore<'userStore', UserState, {
           const invitationIndex = this.invitations.findIndex((inv) => inv.id === channelId);
           if (invitationIndex !== -1) {
             this.joinChannel(channelId)
-            const acceptedChannel = this.invitations[invitationIndex];
-            this.channels.unshift(acceptedChannel)
             this.invitations.splice(invitationIndex, 1)
           }
         },
-        rejectInvitation(channelId) {
+        async rejectInvitation(channelId) {
+          channelService.leaveChannel(channelId)
           const invitationIndex = this.invitations.findIndex((inv) => inv.id === channelId);
           if (invitationIndex !== -1) {
             this.invitations.splice(invitationIndex, 1);

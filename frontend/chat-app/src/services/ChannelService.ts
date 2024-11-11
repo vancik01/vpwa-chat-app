@@ -39,6 +39,11 @@ class ChannelService {
       const response = await api.post('/channels', { name: channelId, channelType: channelType })
       return response.data
     }
+
+    async inviteToChannel(channelId: string, nickName: string): Promise<{message: string}> {
+      const response = await api.post(`/channels/${channelId}/invite`, { invitedNickName: nickName})
+      return response.data
+    }
   }
   
 export default new ChannelService();

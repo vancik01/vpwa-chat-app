@@ -1,7 +1,9 @@
 import Channel from '#models/channel'
 import Message from '#models/message'
+import User from '#models/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import ws from '../../services/ws.js'
+
 
 export default class ChannelsController {
   isChannelIdValid(input: string): boolean {
@@ -114,6 +116,17 @@ export default class ChannelsController {
       return response.send({ message: `Channel ${channelId} created`})
     }
 
+    const isBanned = await channel
+      .related('members')
+      .query()
+      .where('user_id', user.id)
+      .andWherePivot('is_banned', true)
+      .first()
+
+    if (isBanned) {
+      return response.forbidden({ message: 'You are banned from this channel!' })
+    }
+
     const isMember = await channel
       .related('members')
       .query()
@@ -132,13 +145,24 @@ export default class ChannelsController {
       .andWherePivot('pending_invite', true)
       .first()
 
-    if (channel.channelType !== 'public' && !isInvited) {
+    if (channel.channelType === 'private' && !isInvited) {
       return response.forbidden({ message: 'This channel is private!' })
+    }
+
+    if (isInvited) {
+      await channel.related('members').sync({
+        [user.id]: {
+          pending_invite: false,
+        },
+      }, false)
+      return response.send({ message: `Successfully joined channel: ${channelId}` })
     }
 
     await channel.related('members').attach({
       [user.id]: {
         pending_invite: false,
+        is_banned: false,
+        kick_count: 0,
       },
     })
 
@@ -157,7 +181,7 @@ export default class ChannelsController {
     if (!channel) {
       return response.notFound({ message: 'User is not a member of this channel.' })
     }
-
+    
     await channel.related('members').detach([user.id])
 
     if (channel.adminId === user.id) {
@@ -187,7 +211,98 @@ export default class ChannelsController {
     ws.notifyChannelNewMessage(channelId, message)
   }
 
-  // ...
+  async inviteToChannel({ params, request, response, auth }: HttpContext) {
+    const user = await auth.getUserOrFail()
+    const { channelId } = params
+    const {invitedNickName }= request.body()
+    const invited = await User.query().where('nickname', invitedNickName).firstOrFail()
+
+    const channel = await Channel.query().where('id', channelId).first()
+    if (!channel) {
+      return response.notFound({ message: `Channel ${channelId} not found` })
+    }
+
+    const isMember = await channel
+      .related('members')
+      .query()
+      .where('user_id', invited.id)
+      .andWherePivot('pending_invite', false)
+      .andWherePivot('is_banned', false)
+      .first()
+
+    const isInvited = await channel
+      .related('members')
+      .query()
+      .where('user_id', invited.id)
+      .andWherePivot('pending_invite', true)
+      .first()
+
+    const isBanned = await channel
+      .related('members')
+      .query()
+      .where('user_id', invited.id)
+      .andWherePivot('is_banned', true)
+      .first()
+
+    if (channel.channelType === 'private') {
+      if (channel.adminId !== user.id) {
+        return response.forbidden({ message: 'Only admin of the channel can invite users' })
+      }
+      if (isMember) {
+        return response.badRequest({ message: 'User is already a member of the channel' })
+      }
+      if (isInvited) {
+        return response.badRequest({ message: 'User is already invited to the channel' })
+      }
+      if (isBanned) {
+        await channel.related('members').sync({
+          [invited.id]: {
+            pending_invite: true,
+            is_banned: false,
+            kick_count: 0,
+          },
+        }, false);
+        return response.send({ message: 'User invited successfully' })
+      }
+      await channel.related('members').attach({
+        [invited.id]: {
+          pending_invite: true,
+          is_banned: false,
+          kick_count: 0,
+        },
+      });
+      return response.send({ message: 'User invited successfully' })
+    }
+    else {
+      if (isMember) {
+        return response.badRequest({ message: 'User is already a member of the channel' })
+      }
+      if (isInvited) {
+        return response.badRequest({ message: 'User is already invited to the channel' })
+      }
+      if (isBanned && channel.adminId !== user.id) {
+        return response.forbidden({ message: 'User is banned from the channel' })
+      }
+      if (isBanned && channel.adminId === user.id) {
+        await channel.related('members').sync({
+          [invited.id]: {
+            pending_invite: true,
+            is_banned: false,
+            kick_count: 0,
+          },
+        }, false)
+        return response.send({ message: 'User invited successfully' })
+      }
+      await channel.related('members').attach({
+        [invited.id]: {
+          pending_invite: true,
+          is_banned: false,
+          kick_count: 0,
+        },
+      })
+      return response.send({ message: 'User invited successfully' })
+    }
+  }
 }
 
 async function deleteChannel(channelId: string): Promise<void> {
@@ -207,6 +322,8 @@ async function createChannel(channelId: string, channelType: string, adminId: nu
     channel.related('members').attach({
       [adminId]: {
         pending_invite: false,
+        is_banned: false,
+        kick_count: 0,
       },
     })
     return channel
