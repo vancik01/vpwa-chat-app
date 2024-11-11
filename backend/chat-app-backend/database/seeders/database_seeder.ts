@@ -78,7 +78,7 @@ export default class extends BaseSeeder {
 
           await Message.create({
             channelId: channel.id,
-            messageContent: messageContent,
+            messageContent: `${j} ${messageContent}`,
             senderId: faker.helpers.arrayElement(members).id,
             createdAt: DateTime.fromJSDate(createdAt.toDate()),
           })

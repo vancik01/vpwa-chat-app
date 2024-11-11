@@ -4,6 +4,7 @@ import User from '#models/user'
 import Kick from '#models/kicks'
 import type { HttpContext } from '@adonisjs/core/http'
 import ws from '../../services/ws.js'
+import { DateTime } from 'luxon'
 
 export default class ChannelsController {
   isChannelIdValid(input: string): boolean {
@@ -21,19 +22,30 @@ export default class ChannelsController {
       })
       .select('id', 'channel_type', 'adminId')
       .preload('members', (q) => {
-        q.pivotColumns(['pending_invite'])
+        q.pivotColumns(['pending_invite', 'last_read_at'])
         q.where('user_id', user.id)
       })
 
-    var reuturnObj = channels.map((channel) => {
-      var tmp = {
-        id: channel.id,
-        channelType: channel.channelType,
-        pendingInvite: channel.members[0].$extras.pivot_pending_invite,
-        isAdmin: channel.adminId === user.id,
-      }
-      return tmp
-    })
+    var reuturnObj = await Promise.all(
+      channels.map(async (channel) => {
+        const lastReadAt =
+          channel.members[0].$extras.pivot_last_read_at || DateTime.fromSQL('1970-01-01').toSQL()
+
+        await channel.loadCount('messages', (q) => {
+          q.where('createdAt', '>', lastReadAt)
+        })
+
+        var tmp = {
+          id: channel.id,
+          channelType: channel.channelType,
+          pendingInvite: channel.members[0].$extras.pivot_pending_invite,
+          isAdmin: channel.adminId === user.id,
+          unreadMessagesCount: channel.$extras.messages_count || 0,
+        }
+        return tmp
+      })
+    )
+
     response.send(reuturnObj)
   }
 
@@ -58,6 +70,16 @@ export default class ChannelsController {
       response.status(403).send({ message: 'Unauthorized' })
       return
     }
+
+    await channel.related('members').sync(
+      {
+        [user.id]: {
+          last_read_at: DateTime.now().toSQL(),
+          unread_messages: 0,
+        },
+      },
+      false
+    )
 
     response.send({
       id: channel.id,
@@ -89,8 +111,9 @@ export default class ChannelsController {
   async getMessages({ auth, params, response }: HttpContext) {
     const perPage = 20
     const { channelId, page } = params
-    const user = auth.getUserOrFail()
+    const user = await auth.getUserOrFail()
 
+    // Fetch the channel and the user's `last_read_at` for this channel
     const channel = await Channel.query()
       .where('id', channelId)
       .whereHas('members', (memberQuery) => {
@@ -99,14 +122,25 @@ export default class ChannelsController {
           .where('pending_invite', false)
           .where('is_banned', false)
       })
-      .preload('messages', (q) => {
-        q.orderBy('createdAt', 'desc')
-          .offset(page * perPage)
-          .limit(perPage)
-          .select(['messageContent', 'senderId', 'createdAt'])
+      .preload('members', (memberQuery) => {
+        memberQuery.where('user_id', user.id).pivotColumns(['last_read_at'])
       })
       .firstOrFail()
 
+    // Retrieve `last_read_at` from the pivot table
+    const lastReadAt = channel.members[0].$extras.pivot_last_read_at || DateTime.now().toSQL()
+
+    // Preload only messages created before `last_read_at`
+    await channel.load('messages', (messageQuery) => {
+      messageQuery
+        .where('createdAt', '<', lastReadAt) // Filter messages before `last_read_at`
+        .orderBy('createdAt', 'desc')
+        .offset(page * perPage)
+        .limit(perPage)
+        .select(['messageContent', 'senderId', 'createdAt'])
+    })
+
+    // Reverse messages for chronological order and send response
     response.send(channel.messages.reverse())
   }
 

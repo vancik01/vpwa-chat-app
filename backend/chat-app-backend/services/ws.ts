@@ -5,6 +5,7 @@ import User from '#models/user'
 import { Secret } from '@adonisjs/core/helpers'
 import Message from '#models/message'
 import Channel from '#models/channel'
+import db from '@adonisjs/lucid/services/db'
 
 class Ws {
   io: Server | undefined
@@ -72,10 +73,16 @@ class Ws {
     })
   }
 
-  sendMessageToUser(userId: number, event: string, message: any) {
+  async sendMessageToUser(userId: number, channelId: string, event: string, message: any) {
     const socket = this.userConnections[userId]
     if (socket) {
-      socket.forEach((conn) => conn.emit(event, message))
+      socket.forEach((conn) => conn.emit(event, JSON.stringify(message)))
+    } else if (!socket && event === 'message') {
+      await db
+        .from('channel_user')
+        .where('channel_id', channelId)
+        .andWhere('user_id', message.senderId)
+        .increment('unread_count', 1)
     }
   }
 
@@ -90,19 +97,15 @@ class Ws {
         })
         .firstOrFail()
       members.members.map((u) => {
-        this.sendMessageToUser(
-          u.id,
-          'new_message',
-          JSON.stringify({
-            messageContent: message.messageContent,
-            senderId: message.senderId,
-            channelId,
-            sentAt: message.createdAt,
-          })
-        )
+        this.sendMessageToUser(u.id, channelId, 'new_message', {
+          messageContent: message.messageContent,
+          senderId: message.senderId,
+          channelId,
+          sentAt: message.createdAt,
+        })
       })
     } catch (error) {
-      console.log('error', error)
+      console.log(error)
     }
   }
 }

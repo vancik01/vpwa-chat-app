@@ -29,7 +29,7 @@ export default class Channel extends BaseModel {
     pivotForeignKey: 'channel_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'user_id',
-    pivotColumns: ['pending_invite', 'is_banned', 'kick_count'],
+    pivotColumns: ['pending_invite', 'is_banned', 'kick_count', 'last_read_at'],
   })
   public members: ManyToMany<typeof User>
 
