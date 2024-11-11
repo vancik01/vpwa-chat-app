@@ -6,6 +6,7 @@ import { useChannelStore } from 'src/stores/channelStore'
 import { channelNameRegex} from 'src/utils/regex'
 import { io } from 'socket.io-client';
 import { initWsConnection } from 'src/services/WebsocketHandler';
+
 interface UserState {
   loading: boolean,
   user: User | null,
@@ -24,6 +25,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
   inviteUserToChannel: (channelId: string, nickName:string) => Promise<boolean>,
+  kickUserFromChannel: (channelId: string, nickName: string) => void,
   deleteChannel: (channelId: string) => void,
   viewedMessageInChannel: (channelId: string) => void,
   acceptInvitation: (channelId: string) => void,
@@ -201,6 +203,25 @@ export const useUserStore = defineStore<'userStore', UserState, {
             return false
           }
   			},
+        async kickUserFromChannel(channelId, nickName) {
+          try {
+            const response = await channelService.kickFromChannel(channelId, nickName)
+            Notify.create({
+              type: 'positive',
+              message: response.message,
+              timeout: 3000,
+              position: 'top-right'
+            })
+          } catch (error) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to kick user ${nickName}`;
+            Notify.create({
+              type: 'negative',
+              message: errorMessage,
+              timeout: 3000,
+              position: 'top-right'
+            })
+          }
+        },
   			async leaveChannel(channelId) {
           if (!this.user?.id) {
             return;
