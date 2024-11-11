@@ -9,7 +9,7 @@
             </div>
             <div class="message-content">
                 <div class="message-meta">
-                    <div class="message-user-name">{{message.type == "message" ? message.from?.display_name : "Bot"}}
+                    <div class="message-user-name">{{message.type == "message" ? message.from?.display_name || "User deleted" : "Bot"}}
                         <q-tooltip transition-show="" transition-hide="" anchor="top middle" self="bottom middle" :offset="[5, 5]">@{{message.type == "message" ? message.from?.nickname:"bot"}}</q-tooltip>
                     </div>
                     <div class="message-time">{{sentAt.format("HH:mm:ss")}} {{ !sentAt.isSame(new Date(), "day") ? sentAt.format("DD.MM.YYYY") : "" }}</div>

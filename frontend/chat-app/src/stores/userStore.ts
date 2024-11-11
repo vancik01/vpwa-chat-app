@@ -274,7 +274,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
               is_admin: channel.is_admin,
               is_someone_typing: false,
               user_typing: null,
-              type: channel.channelType
+              type: channel.channel_type
             })
             Notify.create({
               type: 'positive',
@@ -374,7 +374,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
               is_admin: newChannel.is_admin,
               is_someone_typing: false,
               user_typing: null,
-              type: newChannel.channelType
+              type: newChannel.channel_type
             })
             Notify.create({
               type: 'positive',

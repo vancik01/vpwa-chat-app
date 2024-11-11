@@ -18,10 +18,9 @@ export function initWsConnection(socket:Socket){
                 type:'message',
                 sent_at: jsonData.sentAt,
                 messageContent: jsonData.messageContent,
-                from: channelStore.members.find((member) => member.id === jsonData.senderId) || null,
-                
+                from: channelStore.members.find((member) => member.id === jsonData.senderId) || null,   
             }
-            channelStore.messages.push(newMessage)
+            channelStore.newMessage(newMessage)
           }
 
         })

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, ChannelMember, Message, MessageType } from 'src/components/models'
 import { useUserStore } from './userStore'
-import { cancelRegex, inviteRegex, joinRegex, listRegex, quitlRegex, revokeRegex, joinTypeRegex, kickRegex } from 'src/utils/regex'
+import { cancelRegex, inviteRegex, joinRegex, listRegex, quitRegex, revokeRegex, joinTypeRegex, kickRegex } from 'src/utils/regex'
 import { channelService } from 'src/services'
 import { Notify } from 'quasar';
 import moment from 'moment'
@@ -18,6 +18,7 @@ interface ChannelState {
 
 export const useChannelStore = defineStore<'channelStore', ChannelState, NonNullable<unknown>, {
 	postMessage: (messageContent: string, messageType: MessageType) => void,
+	newMessage: (message: Message) => void,
 	loadMessages: (page: number) => Promise<Message[]>,
 	setCurrentChannel: (channelId: string) => Promise<void>,
 }>('channelStore', {
@@ -74,7 +75,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 			} else if (commandMatch = messageContent.match(cancelRegex)) {
 				userStore.leaveChannel(this.current_channel?.id as string)
 
-			} else if (commandMatch = messageContent.match(quitlRegex)) {
+			} else if (commandMatch = messageContent.match(quitRegex)) {
 				userStore.deleteChannel(this.current_channel?.id as string)
 
 			} else if ((commandMatch = messageContent.match(listRegex))) {
@@ -139,6 +140,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 			const userStore = useUserStore()
 			try {
 				const newChannel = await channelService.getChannelDetails(channelId)
+				console.log(newChannel)
 				this.router.push(`/channel/${channelId}`)
 				this.current_channel = {
 					has_new_messages: 0,
@@ -146,7 +148,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 					is_admin: newChannel.is_admin,
 					is_someone_typing: false,
 					user_typing: null,
-					type: newChannel.channelType
+					type: newChannel.channel_type
 				}
 				this.members = newChannel.members
 				userStore.viewedMessageInChannel(channelId)
@@ -157,17 +159,22 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				this.page = 1
 
 			} catch (error) {
+				const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to join "${channelId}" channel.`;
 				Notify.create({
 					type: 'negative',
-					message: `${error}`,
+					message: errorMessage,
 					timeout: 3000,
-				});
+					position: 'top-right'
+				})
 			}
 
 			// load data fomr DB
 		},
-		// handleInfinityScroll(){
 
-		// }
+		newMessage(message:Message){
+			this.messages.push(message)
+		}
+		
+		
 	}
 })

@@ -9,7 +9,7 @@ export type ApiChannelsList = {
   
   export type ApiChannelDetail = {
     id: string,
-    channelType: 'public' | 'private',
+    channel_type: 'public' | 'private',
     is_admin: boolean,
     members: ChannelMember[]
   }

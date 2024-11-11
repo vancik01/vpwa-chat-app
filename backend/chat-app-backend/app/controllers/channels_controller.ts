@@ -52,7 +52,12 @@ export default class ChannelsController {
           .where('is_banned', false)
           .select('nickname', 'first_name', 'last_name', 'status')
       })
-      .firstOrFail()
+      .first()
+
+    if (!channel) {
+      response.status(403).send({ message: 'Unauthorized' })
+      return
+    }
 
     response.send({
       id: channel.id,

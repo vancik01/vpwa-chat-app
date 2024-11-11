@@ -108,6 +108,16 @@ channelStore.$onAction(({ name, after }) => {
         after(() => {
           scrollToBottom()
         })
+      } else if (name === 'newMessage'){
+        after(() => {
+          if (chatScroll.value) {
+            const percent = chatScroll.value.getScrollPercentage()
+            console.log(percent)
+            if (percent.top * 100 > 90){
+              scrollToBottom()
+            }
+          }
+        })
       }
 
     });
