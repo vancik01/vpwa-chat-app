@@ -3,7 +3,7 @@
         <div class = "drawer-layout">
             <!-- logo placeholder -->
             <div class="logo-placeholder">
-                <span>App Logo</span>
+                <span class="">🚀 S(pace)lack</span>
             </div>
         
             <!-- channels section -->
@@ -61,6 +61,8 @@ export default {
         justify-content: start;
         align-items: center; 
         padding: 12px 16px;
+        font-size: 20px;
+        font-weight: 700;
     }
     .channels-section {
         flex: 1;

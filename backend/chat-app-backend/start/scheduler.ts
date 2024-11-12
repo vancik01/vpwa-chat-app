@@ -8,7 +8,7 @@ scheduler
     console.log('Maintenance task started 🚀')
 
     // Calculate the date 30 days ago
-    const dateThreshold = DateTime.now().minus({ minutes: 30 }).toISO()
+    const dateThreshold = DateTime.now().minus({ days: 30 }).toISO()
 
     // Query for channels where all messages are older than 30 minutes
     const channels = await Channel.query().whereDoesntHave('messages', (q) => {
