@@ -67,22 +67,18 @@ class Ws {
           if (this.userConnections[userId].length === 0) {
             delete this.userConnections[userId]
           }
-          console.log(this.userConnections)
         })
       }
     })
   }
 
-  async sendMessageToUser(userId: number, channelId: string, event: string, message: any) {
+  async sendMessageToUser(userId: number, event: string, message: any) {
+    console.log('send', event, 'to user', userId)
     const socket = this.userConnections[userId]
     if (socket) {
       socket.forEach((conn) => conn.emit(event, JSON.stringify(message)))
-    } else if (!socket && event === 'message') {
-      await db
-        .from('channel_user')
-        .where('channel_id', channelId)
-        .andWhere('user_id', message.senderId)
-        .increment('unread_count', 1)
+    } else {
+      console.log('No socket', userId)
     }
   }
 
@@ -96,12 +92,62 @@ class Ws {
             .whereNotPivot('user_id', message.senderId)
         })
         .firstOrFail()
-      members.members.map((u) => {
-        this.sendMessageToUser(u.id, channelId, 'new_message', {
+      members.members.map(async (u) => {
+        await this.sendMessageToUser(u.id, 'new_message', {
           messageContent: message.messageContent,
           senderId: message.senderId,
           channelId,
           sentAt: message.createdAt,
+        })
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  async notifyChannelUserJoined(channelId: string, userId: number) {
+    try {
+      const members = await Channel.query()
+        .where('id', channelId)
+        .preload('members', (q) => {
+          q.where('pending_invite', false).where('is_banned', false)
+        })
+        .firstOrFail()
+      const user = await User.findOrFail(userId)
+      console.log(members.members)
+      await Promise.all(
+        members.members.map(async (u) => {
+          try {
+            await this.sendMessageToUser(u.id, 'user_joined', {
+              display_name: `${user.first_name} ${user.last_name}`,
+              id: userId,
+              nickname: user.nickname,
+              status: user.status,
+              channelId,
+            })
+          } catch (error) {
+            console.error(`Failed to send message to user ${u.id}:`, error)
+          }
+        })
+      )
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+  async notifyChannelDestroyed(channelId: string, userId: number) {
+    try {
+      const members = await Channel.query()
+        .where('id', channelId)
+        .preload('members', (q) => {
+          q.where('pending_invite', false)
+            .where('is_banned', false)
+            .whereNotPivot('user_id', userId)
+        })
+        .firstOrFail()
+      members.members.map(async (u) => {
+        await this.sendMessageToUser(u.id, 'channel_destroyed', {
+          channelId: channelId,
+          reason: `Channel ${channelId} was deleted`,
         })
       })
     } catch (error) {

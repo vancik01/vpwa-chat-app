@@ -5,6 +5,7 @@ export type ApiChannelsList = {
     channelType: 'public' | 'private'
     pendingInvite: boolean
     isAdmin: boolean
+    unreadMessagesCount: string
   }
   
   export type ApiChannelDetail = {

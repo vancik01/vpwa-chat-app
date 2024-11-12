@@ -142,7 +142,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
           
           data.forEach((channel) => {
             const channelData = {
-              has_new_messages: 0,
+              has_new_messages: parseInt(channel.unreadMessagesCount),
               id: channel.id,
               is_admin: channel.isAdmin,
               is_someone_typing: false,
@@ -299,6 +299,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
           }
   				const channel = this.channels.find(channel => channel.id === channelId);
           if (!channel?.is_admin) {
+            Notify.create({
+              color: 'negative',
+              message: `Channel "${channelId}" can be only deleted by administrator.`,
+              timeout: 3000,
+              position: 'top-right'
+            });
             return;
           }
           try {

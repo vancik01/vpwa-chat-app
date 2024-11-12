@@ -45,7 +45,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				const channelName = commandMatch[1];
 				userStore.joinChannel(channelName)
 
-			} else if ((commandMatch = messageContent.match(kickRegex))) {
+			} else if ((commandMatch = messageContent.match(kickRegex)) || (commandMatch = messageContent.match(revokeRegex))) {
 				const nickName = commandMatch[1];
 				userStore.kickUserFromChannel(this.current_channel?.id as string, nickName)
 
@@ -58,7 +58,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				}
 				userStore.createChannel(channelName, isPrivate, '')
 
-			} else if ((commandMatch = messageContent.match(inviteRegex)) || (commandMatch = messageContent.match(revokeRegex))) {
+			} else if ((commandMatch = messageContent.match(inviteRegex))) {
 				const nickName = commandMatch[1];
 				const result = await userStore.inviteUserToChannel(this.current_channel?.id as string, nickName)
 

@@ -23,6 +23,19 @@ export type ChannelMember = {
   status: UserStatus
 }
 
+export type WsChannelMember = {
+  display_name: string,
+  id: number,
+  nickname: string,
+  status: UserStatus,
+  channelId: string
+}
+
+export type WsChannelDestroy = {
+  channelId: string,
+  reason: string
+}
+
 export type ChannelType = 'private' | 'public'
 
 export type Channel = {
@@ -70,3 +83,5 @@ export type WsMessage ={
   channelId: string,
   sentAt: string
 }
+
+// export type WsMember = {}

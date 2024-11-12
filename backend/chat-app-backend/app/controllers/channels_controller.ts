@@ -197,6 +197,7 @@ export default class ChannelsController {
         },
         false
       )
+      await ws.notifyChannelUserJoined(channel.id, user.id)
       return response.send({ message: `Successfully joined channel: ${channelId}` })
     }
 
@@ -207,7 +208,7 @@ export default class ChannelsController {
         kick_count: 0,
       },
     })
-
+    await ws.notifyChannelUserJoined(channel.id, user.id)
     return response.send({ message: `Successfully joined channel: ${channelId}` })
   }
 
@@ -227,6 +228,7 @@ export default class ChannelsController {
     await channel.related('members').detach([user.id])
 
     if (channel.adminId === user.id) {
+      ws.notifyChannelDestroyed(channelId, user.id)
       await deleteChannel(channelId)
     }
 
@@ -313,6 +315,13 @@ export default class ChannelsController {
           },
           false
         )
+        await ws.sendMessageToUser(invited.id, 'invitation', {
+          id: channelId,
+          channelType: channel.channelType,
+          pendingInvite: true,
+          isAdmin: false,
+          unreadMessagesCount: 0,
+        })
         return response.send({ message: 'User invited successfully' })
       }
       await channel.related('members').attach({
@@ -322,6 +331,15 @@ export default class ChannelsController {
           kick_count: 0,
         },
       })
+
+      await ws.sendMessageToUser(invited.id, 'invitation', {
+        id: channelId,
+        channelType: channel.channelType,
+        pendingInvite: true,
+        isAdmin: false,
+        unreadMessagesCount: 0,
+      })
+
       return response.send({ message: 'User invited successfully' })
     } else {
       if (isMember) {
@@ -345,6 +363,13 @@ export default class ChannelsController {
           },
           false
         )
+        await ws.sendMessageToUser(invited.id, 'invitation', {
+          id: channelId,
+          channelType: channel.channelType,
+          pendingInvite: true,
+          isAdmin: false,
+          unreadMessagesCount: 0,
+        })
         return response.send({ message: 'User invited successfully' })
       }
       await channel.related('members').attach({
@@ -353,6 +378,14 @@ export default class ChannelsController {
           is_banned: false,
           kick_count: 0,
         },
+      })
+
+      await ws.sendMessageToUser(invited.id, 'invitation', {
+        id: channelId,
+        channelType: channel.channelType,
+        pendingInvite: true,
+        isAdmin: false,
+        unreadMessagesCount: 0,
       })
       return response.send({ message: 'User invited successfully' })
     }
@@ -417,6 +450,10 @@ export default class ChannelsController {
         },
         false
       )
+      ws.sendMessageToUser(kicked.id, 'channel_destroyed', {
+        channelId: channel.id,
+        reason: `You've been banned from channel ${channel.id}`,
+      })
       return response.send({ message: 'User banned successfully' })
     } else {
       if (channel.adminId === user.id) {
@@ -430,6 +467,10 @@ export default class ChannelsController {
           },
           false
         )
+        ws.sendMessageToUser(user.id, 'channel_destroyed', {
+          channelId: kicked.id,
+          reason: `You've been banned from channel ${channel.id}`,
+        })
         return response.send({ message: 'User banned successfully' })
       }
       const alreadyKicked = await Kick.query()
@@ -470,8 +511,16 @@ export default class ChannelsController {
           },
           false
         )
+        ws.sendMessageToUser(user.id, 'channel_destroyed', {
+          channelId: kicked.id,
+          reason: `You've been banned from channel ${channel.id}`,
+        })
         return response.send({ message: 'User banned from channel' })
       }
+      ws.sendMessageToUser(user.id, 'channel_destroyed', {
+        channelId: kicked.id,
+        reason: `You've been banned from channel ${channel.id}`,
+      })
       return response.send({ message: 'User kicked successfully' })
     }
   }

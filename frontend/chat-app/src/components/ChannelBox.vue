@@ -10,7 +10,7 @@
     <q-icon v-if="channel.type === 'private'" name="lock" />
     <q-icon v-else name="tag" />
     <span class="channel-name q-px-xs">{{ channel.id }}</span>
-    <div v-if="channel.has_new_messages > 0" class="new-messages">{{ channel.has_new_messages }}</div>
+    <div v-if="channel.has_new_messages > 0 && !isInvitation" class="new-messages">{{ channel.has_new_messages < 9 ? channel.has_new_messages : "9+" }}</div>
 
     <ChannelControls 
       v-if="!isInvitation"
