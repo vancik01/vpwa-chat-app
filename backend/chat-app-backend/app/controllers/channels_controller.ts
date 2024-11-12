@@ -526,7 +526,7 @@ export default class ChannelsController {
   }
 }
 
-async function deleteChannel(channelId: string): Promise<void> {
+export async function deleteChannel(channelId: string): Promise<void> {
   const channel = await Channel.findOrFail(channelId)
   await channel.related('members').detach()
   await channel.related('messages').query().delete()

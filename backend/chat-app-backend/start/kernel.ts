@@ -10,6 +10,7 @@
 
 import router from '@adonisjs/core/services/router'
 import server from '@adonisjs/core/services/server'
+import { scheduler } from 'node:timers/promises'
 
 /**
  * The error handler is used to convert an exception

@@ -59,6 +59,7 @@
     "@adonisjs/lucid": "^21.3.0",
     "@vinejs/vine": "^2.1.0",
     "adonis-websocket": "^1.0.4",
+    "adonisjs-scheduler": "^1.0.5",
     "faker": "^6.6.6",
     "luxon": "^3.5.0",
     "moment": "^2.30.1",
