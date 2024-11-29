@@ -1,4 +1,4 @@
-import { UserStatus } from 'src/components/models';
+import { NotificationsStatus, UserStatus } from 'src/components/models';
 const statusLabelsMapper:{
     [key in UserStatus ]:string
 } = {
@@ -6,6 +6,17 @@ const statusLabelsMapper:{
 	offline: 'Offline',
 	online:'Online'
 }
+
+const notificationsStatusMapper:{
+    [key in NotificationsStatus ]:string
+} = {
+	all: 'All',
+	mentions: 'Only mentions'
+}
 export function getStatusLabel(status: UserStatus){
 	return statusLabelsMapper[status]
+}
+
+export function getNotificationsStatusLabel(status: NotificationsStatus){
+	return notificationsStatusMapper[status]
 }

@@ -154,6 +154,47 @@ class Ws {
       console.log(error)
     }
   }
+  async notifyChannelUserStatusChanged(userId: number, status: string) {
+    try {
+      const channels = await Channel.query()
+        .whereHas('members', (memberQuery) => {
+          memberQuery.where('user_id', userId).where('is_banned', false)
+        })
+        .select('id', 'channel_type', 'adminId')
+        .preload('members', (q) => {
+          q.pivotColumns(['pending_invite', 'last_read_at'])
+        })
+
+      if (channels.length === 0) {
+        return
+      }
+
+      // Step 2: Collect all user IDs from these channels, excluding the user whose status changed
+      const memberIds = new Set<number>()
+      channels.forEach((channel) => {
+        channel.members.forEach((member) => {
+          if (member.id !== userId && !member.$extras.pending_invite) {
+            memberIds.add(member.id)
+          }
+        })
+      })
+
+      await Promise.all(
+        Array.from(memberIds).map(async (memberId) => {
+          try {
+            await this.sendMessageToUser(memberId, 'status_change', {
+              userId,
+              status,
+            })
+          } catch (error) {
+            console.error(`Failed to send status change message to user ${memberId}:`, error)
+          }
+        })
+      )
+    } catch (error) {
+      console.error('Error notifying channel members about status change:', error)
+    }
+  }
 }
 
 export default new Ws()

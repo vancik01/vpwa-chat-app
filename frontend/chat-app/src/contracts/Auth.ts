@@ -1,4 +1,4 @@
-import { UserStatus } from 'src/components/models'
+import { NotificationsStatus, UserStatus } from 'src/components/models'
 
 export interface ApiToken {
     type: 'bearer'
@@ -29,4 +29,5 @@ export interface ApiToken {
     status: UserStatus;
     createdAt: string;
     updatedAt: string;
+    notificationsStatus: NotificationsStatus
   }

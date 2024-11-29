@@ -13,11 +13,8 @@
             <div class="category notifications">
                 <span class="item-wrap-title">Notifications</span>
                 <div class="menu-items-wrap">
-                    <div class="item">
-                        <StatusDot :status="'online'" /> <span>All</span>
-                    </div>
-                    <div class="item">
-                        <StatusDot :status="'dnd'" /> <span>Only mentions</span>
+                    <div v-bind:key="item" v-for="item in notifications" :class="`item ${item} ${item === userStore.user?.notificationsStatus ? 'active' : ''}`" @click="userStore.setNotificationsStatus(item)">
+                        <StatusDot :status="item === 'all' ? 'online' : 'dnd'" /> <span>{{ getNotificationsStatusLabel(item) }}</span>
                     </div>
                 </div>
             </div>
@@ -34,12 +31,13 @@
 </template>
 
 <script setup lang="ts">
-import { getStatusLabel } from 'src/utils/statusLabelMapper';
-import { UserStatus } from './models';
+import { getNotificationsStatusLabel, getStatusLabel } from 'src/utils/statusLabelMapper';
+import { NotificationsStatus, UserStatus } from './models';
 import StatusDot from './StatusDot.vue';
 import { useUserStore } from 'src/stores/userStore';
 
 const status:UserStatus[] = ['online', 'dnd', 'offline']
+const notifications:NotificationsStatus[] = ['all', 'mentions']
 const userStore = useUserStore()
 
 </script>

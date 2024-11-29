@@ -6,5 +6,5 @@ export enum UserStatus {
 
 export enum UserNotificationsStatus {
   'all',
-  'only_mentions',
+  'mentions',
 }

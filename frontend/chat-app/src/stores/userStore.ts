@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import { Channel, User, UserCreateAccountProps, UserStatus} from 'src/components/models'
+import { Channel, User, UserCreateAccountProps, UserStatus, NotificationsStatus} from 'src/components/models'
 import { Notify } from 'quasar';
-import { authService, authManager, channelService } from 'src/services'
+import { authService, authManager, channelService, userSerice } from 'src/services'
 import { useChannelStore } from 'src/stores/channelStore'
 import { channelNameRegex} from 'src/utils/regex'
 import { io } from 'socket.io-client';
@@ -22,6 +22,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   createAccount: (createAccountProps:UserCreateAccountProps) => void
   initializeChatApp: () => void,
   setStatus: (status: UserStatus) => void,
+  setNotificationsStatus: (status: NotificationsStatus) => void,
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
   inviteUserToChannel: (channelId: string, nickName:string) => Promise<boolean>,
@@ -61,7 +62,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
                 nickname: user.nickname,
                 display_name: `${user.firstName} ${user.lastName}`,
                 token: token.token,
-                status: 'online',
+                status: user.status,
+                notificationsStatus: user.notificationsStatus
               };
 
               this.router.push('/')
@@ -118,7 +120,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
               display_name: `${user.firstName} ${user.lastName}`,
               nickname: user.nickname,
               token: token,
-              status: 'online'
+              status: user.status,
+              notificationsStatus: user.notificationsStatus
             }
             this.router.push('/')
             
@@ -163,7 +166,6 @@ export const useUserStore = defineStore<'userStore', UserState, {
             path: '/socket.io', // Ensure this path matches the server's configuration
             transports: ['websocket', 'polling'],
             auth: {
-              // TODO: Replace with token and implement token autentication
               token: `Bearer ${authManager.getToken()}`
             }
           });
@@ -171,8 +173,9 @@ export const useUserStore = defineStore<'userStore', UserState, {
 
           this.loading = false
         },
-  			setStatus(status: UserStatus) {
+  			async setStatus(status: UserStatus) {
   				if(this.user) {
+            await userSerice.setStatus(status)
             const channelStore = useChannelStore()
   					this.user.status = status
             if(channelStore.members){
@@ -180,6 +183,13 @@ export const useUserStore = defineStore<'userStore', UserState, {
               console.log(userMemberObject)
               if(userMemberObject) userMemberObject.status = status
             }
+  				}
+  			},
+  			async setNotificationsStatus(status: NotificationsStatus) {
+  				if(this.user) {
+            console.log(status)
+            await userSerice.setNotificationsStatus(status)
+  					this.user.notificationsStatus = status
   				}
   			},
   			async inviteUserToChannel(channelId, nickName) {
@@ -410,18 +420,20 @@ export const useUserStore = defineStore<'userStore', UserState, {
           const token = authManager.getToken()
           if (token) {
             const user = await authService.me()
+            console.log(user, 'qqwe')
             if (user) {
               this.user = {
                 id: user.id,
                 nickname: user.nickname,
                 display_name: `${user.firstName} ${user.lastName}`,
                 token: token,
-                status: 'online',
+                status: user.status,
+                notificationsStatus: user.notificationsStatus
               }
               return true
             } else {
-              return false
               authManager.removeToken()
+              return false
             }
           }
           return false

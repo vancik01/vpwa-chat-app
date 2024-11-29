@@ -10,6 +10,7 @@
 const AuthController = () => import('#controllers/auth_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+const UsersController = () => import('#controllers/users_controller')
 const ChannelsController = () => import('#controllers/channels_controller')
 
 router.post('/register', [AuthController, 'register']).as('auth.register')
@@ -27,8 +28,12 @@ router.get('/channels/:channelId', [ChannelsController, 'show']).use(middleware.
 
 router.delete('/channels/:channelId', [ChannelsController, 'leaveChannel']).use(middleware.auth())
 router.post('/channels/:channelId', [ChannelsController, 'joinChannel']).use(middleware.auth())
-router.post('/channels/:channelId/invite', [ChannelsController, 'inviteToChannel']).use(middleware.auth())
-router.post('/channels/:channelId/kick', [ChannelsController, 'kickFromChannel']).use(middleware.auth())
+router
+  .post('/channels/:channelId/invite', [ChannelsController, 'inviteToChannel'])
+  .use(middleware.auth())
+router
+  .post('/channels/:channelId/kick', [ChannelsController, 'kickFromChannel'])
+  .use(middleware.auth())
 
 router
   .get('/channels/:channelId/messages/:page', [ChannelsController, 'getMessages'])
@@ -36,4 +41,10 @@ router
 
 router
   .post('/channels/:channelId/messages', [ChannelsController, 'postMessage'])
+  .use(middleware.auth())
+
+router.post('/user/status', [UsersController, 'setStatus']).use(middleware.auth())
+
+router
+  .post('/user/notificationsStatus', [UsersController, 'setNotificationsStatus'])
   .use(middleware.auth())

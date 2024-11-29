@@ -1,6 +1,6 @@
 import { Notify } from 'quasar';
 import { Socket } from 'socket.io-client';
-import { Message, WsChannelDestroy, WsChannelMember, WsMessage } from 'src/components/models';
+import { Message, WsChannelDestroy, WsChannelMember, WsMessage, WsUserStatusChange } from 'src/components/models';
 import { ApiChannelsList } from 'src/contracts';
 import { useChannelStore } from 'src/stores/channelStore';
 import { useUserStore } from 'src/stores/userStore';
@@ -69,6 +69,15 @@ export function initWsConnection(socket:Socket){
             message: jsonData.reason,
             timeout: 3000,
           });
+        })
+
+        socket.on('status_change', (data) => {
+          const jsonData:WsUserStatusChange = JSON.parse(data)
+          const member = channelStore.members.filter((m) => m.id === jsonData.userId)
+          if(member.length !== 0){
+            member[0].status = jsonData.status
+          }
+          
         })
       });
 

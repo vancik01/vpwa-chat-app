@@ -3,7 +3,8 @@ export type User = {
   nickname: string,
   display_name: string,
   token: string | null,
-  status: UserStatus
+  status: UserStatus,
+  notificationsStatus: NotificationsStatus
 }
 
 export type UserCreateAccountProps = {
@@ -15,6 +16,7 @@ export type UserCreateAccountProps = {
 }
 
 export type UserStatus = 'online' | 'dnd' | 'offline'
+export type NotificationsStatus = 'all' | 'mentions'
 
 export type ChannelMember = {
   display_name: string,
@@ -34,6 +36,11 @@ export type WsChannelMember = {
 export type WsChannelDestroy = {
   channelId: string,
   reason: string
+}
+
+export type WsUserStatusChange = {
+  userId: number,
+  status: UserStatus
 }
 
 export type ChannelType = 'private' | 'public'
