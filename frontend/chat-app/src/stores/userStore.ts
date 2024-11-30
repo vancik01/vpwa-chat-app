@@ -5,13 +5,14 @@ import { authService, authManager, channelService, userSerice, notificationsServ
 import { useChannelStore } from 'src/stores/channelStore'
 import { channelNameRegex} from 'src/utils/regex'
 import { io } from 'socket.io-client';
-import { initWsConnection } from 'src/services/WebsocketHandler';
+import { WebsocketHandler } from 'src/services/WebsocketHandler';
 
 interface UserState {
   loading: boolean,
   user: User | null,
   channels: Channel[],
-  invitations: Channel[]
+  invitations: Channel[],
+  socketInstance: WebsocketHandler | undefined
 }
 
 export const useUserStore = defineStore<'userStore', UserState, {
@@ -22,6 +23,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   createAccount: (createAccountProps:UserCreateAccountProps) => void
   initializeChatApp: () => void,
   setStatus: (status: UserStatus) => void,
+  loadChannelsData: () => void,
   setNotificationsStatus: (status: NotificationsStatus) => void,
   leaveChannel: (channelId: string) => void,
   joinChannel: (channelId: string) => void,
@@ -40,7 +42,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			user: null,
   			channels:[      
   			],
-        invitations: []
+        invitations: [],
+        socketInstance: undefined
   		}),
   		getters: {
   			is_logged_in (){
@@ -106,6 +109,29 @@ export const useUserStore = defineStore<'userStore', UserState, {
             console.error('Logout failed:', error)
           }
   			},
+
+        async loadChannelsData() {
+          const data = await channelService.getChannels()
+          this.invitations = []
+          this.channels = []
+          data.forEach((channel) => {
+            const channelData = {
+              has_new_messages: parseInt(channel.unreadMessagesCount),
+              id: channel.id,
+              is_admin: channel.isAdmin,
+              is_someone_typing: false,
+              user_typing: null,
+              type: channel.channelType
+            }
+      
+            if (channel.pendingInvite) {
+              this.invitations.push(channelData)
+            }
+            else {
+              this.channels.push(channelData)
+            }
+          })    
+        },
         
   			async createAccount(createAccountProps) {
   				try {
@@ -141,25 +167,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
         async initializeChatApp(){
           this.loading = true
-          const data = await channelService.getChannels()
-          
-          data.forEach((channel) => {
-            const channelData = {
-              has_new_messages: parseInt(channel.unreadMessagesCount),
-              id: channel.id,
-              is_admin: channel.isAdmin,
-              is_someone_typing: false,
-              user_typing: null,
-              type: channel.channelType
-            }
-      
-            if (channel.pendingInvite) {
-              this.invitations.push(channelData)
-            }
-            else {
-              this.channels.push(channelData)
-            }
-          })         
+          this.loadChannelsData()     
 
           // Initialize the Socket.IO client
           const socket = io(process.env.API_URL, {
@@ -169,20 +177,36 @@ export const useUserStore = defineStore<'userStore', UserState, {
               token: `Bearer ${authManager.getToken()}`
             }
           });
-          initWsConnection(socket)
+          this.socketInstance = new WebsocketHandler(socket)
+          this.socketInstance.initWsConnection()
           await notificationsService.requestPermissions()
 
           this.loading = false
         },
   			async setStatus(status: UserStatus) {
   				if(this.user) {
+            if(this.user.status === status){
+              return
+            }
             await userSerice.setStatus(status)
             const channelStore = useChannelStore()
+            
+            const prevStatus = this.user.status
   					this.user.status = status
+            
             if(channelStore.members){
               const userMemberObject = channelStore.members.find((u) => u.id === this.user?.id)
-              console.log(userMemberObject)
               if(userMemberObject) userMemberObject.status = status
+              if(status === 'offline'){
+                this.socketInstance?.disconnect()
+              } else if (prevStatus === 'offline'){
+                const channelStore = useChannelStore()
+                this.loadChannelsData()
+                if(channelStore.current_channel){
+                  channelStore.setCurrentChannel(channelStore.current_channel.id)
+                }
+                this.socketInstance?.connect()
+              }
             }
   				}
   			},

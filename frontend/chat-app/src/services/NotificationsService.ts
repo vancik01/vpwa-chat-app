@@ -7,7 +7,7 @@ class NotificationsService {
 
   async notifyNewMessage(message: Message, channel:Channel, from:string){
     const {user} = useUserStore()
-    if(user?.status !== 'offline'){
+    if(user?.status !== 'dnd'){
       if(message.type === 'message'){
         if(user?.notificationsStatus === 'mentions' && !isMentionedInMessage(message.messageContent, user.nickname)){
           return

@@ -6,12 +6,21 @@ import { useChannelStore } from 'src/stores/channelStore';
 import { useUserStore } from 'src/stores/userStore';
 import { notificationsService } from '.';
 
-export function initWsConnection(socket:Socket){
+export class WebsocketHandler {
+  private socket: Socket;
+
+  constructor(socket: Socket) {
+    this.socket = socket;
+  }
+
+  initWsConnection(){
     const userStore = useUserStore()
     const channelStore = useChannelStore()
-    socket.on('connect', () => {
-
-        socket.on('new_message', (data) => {
+    if(userStore.user?.status === 'offline'){
+      this.disconnect()
+    }
+    this.socket.on('connect', () => {
+      this.socket.on('new_message', (data) => {
           const jsonData:WsMessage = JSON.parse(data)
           const channel = userStore.channels.find((ch) => ch.id === jsonData.channelId)
           const newMessage:Message = {
@@ -33,7 +42,7 @@ export function initWsConnection(socket:Socket){
           }
         })
 
-        socket.on('invitation', (data) => {
+        this.socket.on('invitation', (data) => {
           const jsonData:ApiChannelsList = JSON.parse(data)
           userStore.invitations.push({
             has_new_messages: 0,
@@ -45,7 +54,7 @@ export function initWsConnection(socket:Socket){
           })
         })
 
-        socket.on('user_joined', (data) => {
+        this.socket.on('user_joined', (data) => {
           const jsonData:WsChannelMember = JSON.parse(data)
           if(channelStore.current_channel && channelStore.current_channel.id === jsonData.channelId){
             channelStore.members.push({
@@ -57,7 +66,7 @@ export function initWsConnection(socket:Socket){
           }
         })
 
-        socket.on('channel_destroyed', (data) => {
+        this.socket.on('channel_destroyed', (data) => {
           const jsonData:WsChannelDestroy = JSON.parse(data)
           const memberChannelIndex = userStore.channels.findIndex(channel => channel.id === jsonData.channelId);
           const invitationChannelIndex = userStore.invitations.findIndex(channel => channel.id === jsonData.channelId);
@@ -78,7 +87,7 @@ export function initWsConnection(socket:Socket){
           });
         })
 
-        socket.on('status_change', (data) => {
+        this.socket.on('status_change', (data) => {
           const jsonData:WsUserStatusChange = JSON.parse(data)
           const member = channelStore.members.filter((m) => m.id === jsonData.userId)
           if(member.length !== 0){
@@ -89,8 +98,15 @@ export function initWsConnection(socket:Socket){
       });
 
       // Handle disconnection
-      socket.on('disconnect', () => {
+      this.socket.on('disconnect', () => {
         console.log('Disconnected from server');
       });
+  }
+  disconnect(){
+    this.socket.disconnect()
+  }
 
+  connect(){
+    this.socket.connect()
+  }
 }
