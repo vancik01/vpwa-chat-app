@@ -179,7 +179,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
           });
           this.socketInstance = new WebsocketHandler(socket)
           this.socketInstance.initWsConnection()
-          await notificationsService.requestPermissions()
+          notificationsService.requestPermissions()
 
           this.loading = false
         },
