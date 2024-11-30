@@ -88,7 +88,8 @@ export type WsMessage ={
   messageContent: string,
   senderId: number,
   channelId: string,
-  sentAt: string
+  sentAt: string,
+  from: string
 }
 
 // export type WsMember = {}

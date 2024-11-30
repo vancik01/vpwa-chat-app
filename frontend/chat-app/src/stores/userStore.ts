@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { Channel, User, UserCreateAccountProps, UserStatus, NotificationsStatus} from 'src/components/models'
 import { Notify } from 'quasar';
-import { authService, authManager, channelService, userSerice } from 'src/services'
+import { authService, authManager, channelService, userSerice, notificationsService } from 'src/services'
 import { useChannelStore } from 'src/stores/channelStore'
 import { channelNameRegex} from 'src/utils/regex'
 import { io } from 'socket.io-client';
@@ -159,7 +159,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             else {
               this.channels.push(channelData)
             }
-          })
+          })         
 
           // Initialize the Socket.IO client
           const socket = io(process.env.API_URL, {
@@ -170,6 +170,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
             }
           });
           initWsConnection(socket)
+          await notificationsService.requestPermissions()
 
           this.loading = false
         },

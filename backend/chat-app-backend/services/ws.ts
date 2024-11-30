@@ -93,11 +93,13 @@ class Ws {
         })
         .firstOrFail()
       members.members.map(async (u) => {
+        const sender = await User.findOrFail(message.senderId)
         await this.sendMessageToUser(u.id, 'new_message', {
           messageContent: message.messageContent,
           senderId: message.senderId,
           channelId,
           sentAt: message.createdAt,
+          from: `${sender.first_name} ${sender.last_name}`,
         })
       })
     } catch (error) {

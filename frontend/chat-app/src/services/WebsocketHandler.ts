@@ -4,6 +4,7 @@ import { Message, WsChannelDestroy, WsChannelMember, WsMessage, WsUserStatusChan
 import { ApiChannelsList } from 'src/contracts';
 import { useChannelStore } from 'src/stores/channelStore';
 import { useUserStore } from 'src/stores/userStore';
+import { notificationsService } from '.';
 
 export function initWsConnection(socket:Socket){
     const userStore = useUserStore()
@@ -12,17 +13,23 @@ export function initWsConnection(socket:Socket){
 
         socket.on('new_message', (data) => {
           const jsonData:WsMessage = JSON.parse(data)
+          const channel = userStore.channels.find((ch) => ch.id === jsonData.channelId)
+          const newMessage:Message = {
+            type:'message',
+            sent_at: jsonData.sentAt,
+            messageContent: jsonData.messageContent,
+            from: channelStore.members.find((member) => member.id === jsonData.senderId) || null,   
+          }
+
           if(jsonData.channelId !== channelStore.current_channel?.id){
-            const channel = userStore.channels.find((ch) => ch.id === jsonData.channelId)
-            if(channel) channel.has_new_messages += 1
-          } else {
-            const newMessage:Message = {
-                type:'message',
-                sent_at: jsonData.sentAt,
-                messageContent: jsonData.messageContent,
-                from: channelStore.members.find((member) => member.id === jsonData.senderId) || null,   
+            if(channel) {
+              channel.has_new_messages += 1
             }
+          } else {
             channelStore.newMessage(newMessage)
+          }
+          if(channel){
+            notificationsService.notifyNewMessage(newMessage, channel, jsonData.from)
           }
         })
 
