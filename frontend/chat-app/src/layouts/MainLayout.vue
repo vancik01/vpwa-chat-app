@@ -1,9 +1,10 @@
 <template>
   <q-layout view="lHh Lpr lF"> <!-- Modified view: lF to ensure footer is scrollable with the page -->
 
-    <q-header bordered class="bg-primary text-white">
-      <q-toolbar>
+    <q-header bordered :class="`${userStore.isOnline ? 'bg-primary' : 'bg-red'}`">
+      <q-toolbar class="navbar">
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+        <div v-if="!userStore.isOnline">You are offline</div>
       </q-toolbar>
     </q-header>
 
@@ -35,7 +36,6 @@ export default {
   },
 
   created(){
-    console.log('initializing app')
     userStore.initializeChatApp()
 
   },
@@ -58,6 +58,9 @@ export default {
  .q-drawer{
   display: flex;
   flex-direction: column;
+ }
+ .q-toolbar{
+  justify-content: space-between;
  }
 </style>
 

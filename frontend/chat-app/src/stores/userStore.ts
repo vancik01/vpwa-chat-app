@@ -12,7 +12,8 @@ interface UserState {
   user: User | null,
   channels: Channel[],
   invitations: Channel[],
-  socketInstance: WebsocketHandler | undefined
+  socketInstance: WebsocketHandler | undefined,
+  isOnline: boolean
 }
 
 export const useUserStore = defineStore<'userStore', UserState, {
@@ -43,7 +44,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			channels:[      
   			],
         invitations: [],
-        socketInstance: undefined
+        socketInstance: undefined,
+        isOnline: true
   		}),
   		getters: {
   			is_logged_in (){
@@ -167,7 +169,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
   			},
         async initializeChatApp(){
           this.loading = true
-          this.loadChannelsData()     
+          this.loadChannelsData()
 
           // Initialize the Socket.IO client
           const socket = io(process.env.API_URL, {
@@ -182,6 +184,8 @@ export const useUserStore = defineStore<'userStore', UserState, {
           notificationsService.requestPermissions()
 
           this.loading = false
+          window.addEventListener('online', () => (this.isOnline = true));
+          window.addEventListener('offline', () => (this.isOnline = false));
         },
   			async setStatus(status: UserStatus) {
   				if(this.user) {

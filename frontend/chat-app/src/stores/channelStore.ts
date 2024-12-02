@@ -159,7 +159,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				this.page = 1
 
 			} catch (error) {
-				const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to join "${channelId}" channel.`;
+				const errorMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message || `Failed to load channel "${channelId}".`;
 				Notify.create({
 					type: 'negative',
 					message: errorMessage,
