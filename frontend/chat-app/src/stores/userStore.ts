@@ -192,6 +192,12 @@ export const useUserStore = defineStore<'userStore', UserState, {
                 channelStore.setCurrentChannel(channelStore.current_channel.id)
               }
               this.socketInstance?.connect()
+              Notify.create({
+                type: 'positive',
+                message: 'You are back online!',
+                timeout: 3000,
+                position: 'top-right'
+              })
             }
             this.isOnline = true
           });
