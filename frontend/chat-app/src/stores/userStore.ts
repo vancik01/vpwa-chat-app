@@ -184,7 +184,17 @@ export const useUserStore = defineStore<'userStore', UserState, {
           notificationsService.requestPermissions()
 
           this.loading = false
-          window.addEventListener('online', () => (this.isOnline = true));
+          window.addEventListener('online', () => {
+            if(this.isOnline === false){
+              const channelStore = useChannelStore()
+              this.loadChannelsData()
+              if(channelStore.current_channel){
+                channelStore.setCurrentChannel(channelStore.current_channel.id)
+              }
+              this.socketInstance?.connect()
+            }
+            this.isOnline = true
+          });
           window.addEventListener('offline', () => (this.isOnline = false));
         },
   			async setStatus(status: UserStatus) {
