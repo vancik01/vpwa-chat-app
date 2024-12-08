@@ -467,8 +467,8 @@ export default class ChannelsController {
           },
           false
         )
-        ws.sendMessageToUser(user.id, 'channel_destroyed', {
-          channelId: kicked.id,
+        ws.sendMessageToUser(kicked.id, 'channel_destroyed', {
+          channelId: channel.id,
           reason: `You've been banned from channel ${channel.id}`,
         })
         return response.send({ message: 'User banned successfully' })
@@ -511,15 +511,15 @@ export default class ChannelsController {
           },
           false
         )
-        ws.sendMessageToUser(user.id, 'channel_destroyed', {
-          channelId: kicked.id,
+        ws.sendMessageToUser(kicked.id, 'channel_destroyed', {
+          channelId: channel.id,
           reason: `You've been banned from channel ${channel.id}`,
         })
         return response.send({ message: 'User banned from channel' })
       }
-      ws.sendMessageToUser(user.id, 'channel_destroyed', {
-        channelId: kicked.id,
-        reason: `You've been banned from channel ${channel.id}`,
+      ws.sendMessageToUser(kicked.id, 'kicked', {
+        channelId: channel.id,
+        reason: `You've been kicked in channel ${channel.id}`,
       })
       return response.send({ message: 'User kicked successfully' })
     }

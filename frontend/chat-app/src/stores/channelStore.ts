@@ -49,7 +49,20 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 				const channelName = commandMatch[1];
 				userStore.joinChannel(channelName)
 
-			} else if ((commandMatch = messageContent.match(kickRegex)) || (commandMatch = messageContent.match(revokeRegex))) {
+			} else if ((commandMatch = messageContent.match(kickRegex))) {
+				const nickName = commandMatch[1];
+				userStore.kickUserFromChannel(this.current_channel?.id as string, nickName)
+
+			} else if ((commandMatch = messageContent.match(revokeRegex))) {
+				if(this.current_channel?.is_admin === false){
+					Notify.create({
+						type: 'negative',
+						message: 'You are not an admin',
+						timeout: 3000,
+						position: 'top-right'
+					});
+					return
+				}
 				const nickName = commandMatch[1];
 				userStore.kickUserFromChannel(this.current_channel?.id as string, nickName)
 

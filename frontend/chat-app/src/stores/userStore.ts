@@ -359,7 +359,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
           if (!channel?.is_admin) {
             Notify.create({
               color: 'negative',
-              message: `Channel "${channelId}" can be only deleted by administrator.`,
+              message: `Channel "${channelId}" can be only deleted by admin.`,
               timeout: 3000,
               position: 'top-right'
             });

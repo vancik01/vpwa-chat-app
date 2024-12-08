@@ -67,6 +67,15 @@ export class WebsocketHandler {
           }
         })
 
+        this.socket.on('kicked', (data) => {
+          const jsonData:WsChannelDestroy = JSON.parse(data)
+          Notify.create({
+            type: 'negative',
+            message: jsonData.reason,
+            timeout: 3000,
+          });
+        })
+
         this.socket.on('channel_destroyed', (data) => {
           const jsonData:WsChannelDestroy = JSON.parse(data)
           const memberChannelIndex = userStore.channels.findIndex(channel => channel.id === jsonData.channelId);
