@@ -7,6 +7,7 @@
             :placeholder="userStore.isOnline ? 'Your message or use / to use commands ...' : 'You cannot send messages in offline mode.'"
             v-model="editorContent" 
             @keydown="handleKeyDown"
+            @input="handleInput"
         />
         <div class="send-icon">
             <q-btn 
@@ -49,6 +50,9 @@ export default {
                 this.postMessage();
                 key.preventDefault();
             }
+        },
+        handleInput() {
+            this.userStore.socketInstance.emitTyping(chatStore.current_channel?.id, this.editorContent);
         }
     },
     computed: {

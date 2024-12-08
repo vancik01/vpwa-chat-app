@@ -57,6 +57,32 @@ class Ws {
         this.userConnections[userId].push(socket)
         console.log(`User ${userId} connected with socket ID ${socket.id}`)
 
+        socket.on('typing', async (data) => {
+          const { channelId, content } = JSON.parse(data);
+          const user = await User.findOrFail(userId);
+          try {
+            const members = await Channel.query()
+              .where('id', channelId)
+              .preload('members', (q) => {
+                q.where('pending_invite', false)
+                  .where('is_banned', false)
+                  .whereNotPivot('user_id', userId)
+              })
+              .firstOrFail()
+            members.members.map(async (u) => {
+              await this.sendMessageToUser(u.id, 'typing', {
+                channelId,
+                userId,
+                content,
+                user: { display_name: `${user.first_name} ${user.last_name}`, nickname: user.nickname }
+              })
+            })
+          }
+          catch (error) {
+            console.log('error', error)
+          }
+        });
+
         socket.on('disconnect', () => {
           console.log(`User ${userId} disconnected from socket ID ${socket.id}`)
 

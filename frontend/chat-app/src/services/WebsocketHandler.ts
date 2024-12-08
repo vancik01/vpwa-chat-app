@@ -40,6 +40,7 @@ export class WebsocketHandler {
           if(channel){
             notificationsService.notifyNewMessage(newMessage, channel, jsonData.from)
           }
+          channelStore.updateTypingStatus(jsonData.channelId, jsonData.senderId, '')
         })
 
         this.socket.on('invitation', (data) => {
@@ -95,6 +96,11 @@ export class WebsocketHandler {
           }
           
         })
+
+        this.socket.on('typing', (data) => {
+          const jsonData = JSON.parse(data);
+          channelStore.updateTypingStatus(jsonData.channelId, jsonData.userId, jsonData.content);
+        })
       });
 
       // Handle disconnection
@@ -102,6 +108,10 @@ export class WebsocketHandler {
         console.log('Disconnected from server');
       });
   }
+  emitTyping(channelId: string, content: string) {
+    this.socket.emit('typing', JSON.stringify({ channelId, content }));
+  }
+
   disconnect(){
     this.socket.disconnect()
   }

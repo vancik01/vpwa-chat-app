@@ -5,6 +5,7 @@ import { cancelRegex, inviteRegex, joinRegex, listRegex, quitRegex, revokeRegex,
 import { channelService } from 'src/services'
 import { Notify } from 'quasar';
 import moment from 'moment'
+const parser = new DOMParser();
 
 interface ChannelState {
 	current_channel: Channel | null,
@@ -13,7 +14,8 @@ interface ChannelState {
 	is_last_page: boolean,
 	is_loading: boolean,
 	is_loading_infinite: boolean,
-	page: number
+	page: number,
+	typingStatus: { [channelId: string]: { [userId: number]: string } }
 }
 
 export const useChannelStore = defineStore<'channelStore', ChannelState, NonNullable<unknown>, {
@@ -21,6 +23,7 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 	newMessage: (message: Message) => void,
 	loadMessages: (page: number) => Promise<Message[]>,
 	setCurrentChannel: (channelId: string) => Promise<void>,
+	updateTypingStatus: (channelId: string, userId: number, content: string) => void,
 }>('channelStore', {
 	state: (): ChannelState => ({
 		is_loading: false,
@@ -29,7 +32,8 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 		is_last_page: false,
 		current_channel: null,
 		messages: [],
-		members: []
+		members: [],
+		typingStatus: {}
 	}),
 	getters: {
 		// Add getters here if needed with types
@@ -167,8 +171,20 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 					position: 'top-right'
 				})
 			}
+		},
+		updateTypingStatus(channelId: string, userId: number, content: string) {
+			const decodedContent = parser.parseFromString(content, 'text/html').body.textContent;
 
-			// load data fomr DB
+			console.log(decodedContent)
+			if (!this.typingStatus[channelId]) {
+			  this.typingStatus[channelId] = {};
+			}
+			if (decodedContent === null || decodedContent === '' || decodedContent[0] === '/') {
+			  delete this.typingStatus[channelId][userId];
+			}
+			else if (decodedContent) {
+			  this.typingStatus[channelId][userId] = decodedContent;
+			}
 		},
 
 		newMessage(message:Message){
