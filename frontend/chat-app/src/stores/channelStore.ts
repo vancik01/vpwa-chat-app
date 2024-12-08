@@ -142,6 +142,10 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 		async setCurrentChannel(channelId) {
 			this.is_loading = true;
 			const userStore = useUserStore()
+			const prevChannel = this.current_channel?.id
+			if (prevChannel) {
+				userStore.socketInstance?.emitTyping(prevChannel, '')
+			}
 			try {
 				const newChannel = await channelService.getChannelDetails(channelId)
 				console.log(newChannel)
@@ -175,7 +179,6 @@ export const useChannelStore = defineStore<'channelStore', ChannelState, NonNull
 		updateTypingStatus(channelId: string, userId: number, content: string) {
 			const decodedContent = parser.parseFromString(content, 'text/html').body.textContent;
 
-			console.log(decodedContent)
 			if (!this.typingStatus[channelId]) {
 			  this.typingStatus[channelId] = {};
 			}

@@ -218,6 +218,9 @@ export const useUserStore = defineStore<'userStore', UserState, {
               const userMemberObject = channelStore.members.find((u) => u.id === this.user?.id)
               if(userMemberObject) userMemberObject.status = status
               if(status === 'offline'){
+                if(channelStore.current_channel){
+                  this.socketInstance?.emitTyping(channelStore.current_channel.id, '')
+                }
                 this.socketInstance?.disconnect()
               } else if (prevStatus === 'offline'){
                 const channelStore = useChannelStore()

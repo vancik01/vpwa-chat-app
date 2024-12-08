@@ -55,6 +55,7 @@
       <strong v-if="selectedUserId" @click="viewUserTyping = false; selectedUserId = null" class="user-id">
         {{ typingUsers.find(user => user?.id === parseInt(String(selectedUserId)))?.display_name }}
       </strong>
+      <span class="spinner"><q-spinner-dots color="grey" size="1.3em" /></span>
       <div v-if="selectedUserId" class="text-user-id">{{ typingContents[selectedUserId] }}</div>
     </div>
   </section>
