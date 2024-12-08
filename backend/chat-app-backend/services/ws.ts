@@ -5,7 +5,6 @@ import User from '#models/user'
 import { Secret } from '@adonisjs/core/helpers'
 import Message from '#models/message'
 import Channel from '#models/channel'
-import db from '@adonisjs/lucid/services/db'
 
 class Ws {
   io: Server | undefined
@@ -58,8 +57,8 @@ class Ws {
         console.log(`User ${userId} connected with socket ID ${socket.id}`)
 
         socket.on('typing', async (data) => {
-          const { channelId, content } = JSON.parse(data);
-          const user = await User.findOrFail(userId);
+          const { channelId, content } = JSON.parse(data)
+          const user = await User.findOrFail(userId)
           try {
             const members = await Channel.query()
               .where('id', channelId)
@@ -74,14 +73,16 @@ class Ws {
                 channelId,
                 userId,
                 content,
-                user: { display_name: `${user.first_name} ${user.last_name}`, nickname: user.nickname }
+                user: {
+                  display_name: `${user.first_name} ${user.last_name}`,
+                  nickname: user.nickname,
+                },
               })
             })
-          }
-          catch (error) {
+          } catch (error) {
             console.log('error', error)
           }
-        });
+        })
 
         socket.on('disconnect', () => {
           console.log(`User ${userId} disconnected from socket ID ${socket.id}`)
