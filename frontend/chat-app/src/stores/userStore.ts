@@ -162,7 +162,7 @@ export const useUserStore = defineStore<'userStore', UserState, {
           } catch (error) {
             Notify.create({
               type: 'negative',
-              message: `${error}`,
+              message: 'Registration failed! Username and email must be unique.',
               timeout: 3000
             })
           }

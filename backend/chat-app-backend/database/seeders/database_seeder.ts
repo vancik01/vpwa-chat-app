@@ -12,21 +12,21 @@ export default class extends BaseSeeder {
     const users = await User.createMany([
       {
         first_name: 'User',
-        last_name: 'Name',
+        last_name: '1',
         email: 'user1@email.com',
         nickname: 'user_1',
         password: 'password',
       },
       {
         first_name: 'User',
-        last_name: 'Name',
+        last_name: '2',
         email: 'user2@email.com',
         nickname: 'user_2',
         password: 'password',
       },
       {
         first_name: 'User',
-        last_name: 'Name',
+        last_name: '3',
         email: 'user3@email.com',
         nickname: 'user_3',
         password: 'password',

@@ -2,7 +2,7 @@
     <div class="message" v-if="props.message.type === 'message'">
         <div class="message-wraper">
             <div class="message-user">
-                <span>💬</span>
+                <span id="emoji">{{ chooseEmoji() }}</span>
                 <div class="message-user-status">
                     <StatusDot v-if="props.message.from" :status="props.message.from.status" />
                 </div>
@@ -58,6 +58,17 @@ function parseMessageContent(messageContent: string): (string | VNode)[] {
     });
 
     return result;
+}
+
+function chooseEmoji() {
+    const emojis = ['👽', '👾', '👩‍🚀', '🪐', '✨', '🌍', '🌘', '🔭', '🛸', '🌌', '🛰️', '☄️', '🌚']
+    if (props.message.type === 'message') {
+        if (props.message.from?.nickname) {
+            const index = (props.message.from?.id) % emojis.length
+            return emojis[index]
+        }
+    }
+    return '🗨️'
 }
 </script>
 
@@ -124,5 +135,8 @@ function parseMessageContent(messageContent: string): (string | VNode)[] {
     position: absolute;
     right: -2px;
     bottom: -0px;
+}
+#emoji{
+    font-size: 20px;
 }
 </style>
